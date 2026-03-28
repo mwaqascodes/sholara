@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import SuperAdminPage from "./pages/SuperAdminPage";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import StudentsPage from "./pages/dashboard/StudentsPage";
@@ -16,6 +17,7 @@ import AttendancePage from "./pages/dashboard/AttendancePage";
 import ResultsPage from "./pages/dashboard/ResultsPage";
 import FeesPage from "./pages/dashboard/FeesPage";
 import SchedulePage from "./pages/dashboard/SchedulePage";
+import LeavePage from "./pages/dashboard/LeavePage";
 import PayrollPage from "./pages/dashboard/PayrollPage";
 import ExpensesPage from "./pages/dashboard/ExpensesPage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
@@ -39,6 +41,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/superadmin" element={<SuperAdminPage />} />
               <Route path="/dashboard" element={<DashboardRoute><DashboardHome /></DashboardRoute>} />
               <Route path="/dashboard/students" element={<DashboardRoute><StudentsPage /></DashboardRoute>} />
               <Route path="/dashboard/teachers" element={<DashboardRoute><TeachersPage /></DashboardRoute>} />
@@ -47,6 +50,7 @@ const App = () => (
               <Route path="/dashboard/results" element={<DashboardRoute><ResultsPage /></DashboardRoute>} />
               <Route path="/dashboard/fees" element={<DashboardRoute><FeesPage /></DashboardRoute>} />
               <Route path="/dashboard/schedule" element={<DashboardRoute><SchedulePage /></DashboardRoute>} />
+              <Route path="/dashboard/leave" element={<DashboardRoute><LeavePage /></DashboardRoute>} />
               <Route path="/dashboard/payroll" element={<DashboardRoute><PayrollPage /></DashboardRoute>} />
               <Route path="/dashboard/expenses" element={<DashboardRoute><ExpensesPage /></DashboardRoute>} />
               <Route path="/dashboard/notifications" element={<DashboardRoute><NotificationsPage /></DashboardRoute>} />
