@@ -7,6 +7,7 @@ interface User {
   email: string;
   role: UserRole;
   avatar: string;
+  schoolId?: string;
 }
 
 interface AuthContextType {
@@ -19,10 +20,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const demoUsers: Record<UserRole, User> = {
-  admin: { id: '1', name: 'Admin User', email: 'admin@school.com', role: 'admin', avatar: '👨‍💼' },
-  teacher: { id: '2', name: 'Dr. Sarah Mitchell', email: 'sarah@school.com', role: 'teacher', avatar: '👩‍🏫' },
-  student: { id: '3', name: 'Aarav Patel', email: 'aarav@school.com', role: 'student', avatar: '👨‍🎓' },
-  parent: { id: '4', name: 'Raj Patel', email: 'raj@school.com', role: 'parent', avatar: '👨‍👧' },
+  superadmin: { id: '0', name: 'Platform Admin', email: 'super@eduflow.com', role: 'superadmin', avatar: '🛡️' },
+  admin: { id: '1', name: 'Admin User', email: 'admin@school.com', role: 'admin', avatar: '👨‍💼', schoolId: 'sch1' },
+  teacher: { id: '2', name: 'Dr. Sarah Mitchell', email: 'sarah@school.com', role: 'teacher', avatar: '👩‍🏫', schoolId: 'sch1' },
+  student: { id: '3', name: 'Aarav Patel', email: 'aarav@school.com', role: 'student', avatar: '👨‍🎓', schoolId: 'sch1' },
+  parent: { id: '4', name: 'Raj Patel', email: 'raj@school.com', role: 'parent', avatar: '👨‍👧', schoolId: 'sch1' },
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
