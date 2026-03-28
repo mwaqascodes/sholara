@@ -23,10 +23,10 @@ export default function DashboardHome() {
   ];
 
   const studentStats = [
-    { label: 'My Attendance', value: '94%', icon: Calendar, color: 'from-primary to-secondary' },
-    { label: 'Current GPA', value: '3.8', icon: TrendingUp, color: 'from-secondary to-accent' },
-    { label: 'Subjects', value: '6', icon: BookOpen, color: 'from-accent to-primary' },
-    { label: 'Pending Fees', value: '$0', icon: DollarSign, color: 'from-success to-accent' },
+    { label: 'My Attendance', value: '94%', icon: Calendar, trend: '+2%', color: 'from-primary to-secondary' },
+    { label: 'Current GPA', value: '3.8', icon: TrendingUp, trend: '+0.1', color: 'from-secondary to-accent' },
+    { label: 'Subjects', value: '6', icon: BookOpen, trend: 'On track', color: 'from-accent to-primary' },
+    { label: 'Pending Fees', value: '$0', icon: DollarSign, trend: 'Clear', color: 'from-success to-accent' },
   ];
 
   const displayStats = user?.role === 'student' || user?.role === 'parent' ? studentStats : stats;
