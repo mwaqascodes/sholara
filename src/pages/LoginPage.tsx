@@ -11,22 +11,22 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const roles: { value: UserRole; label: string; icon: string }[] = [
-    { value: 'admin', label: 'Admin', icon: '👨‍💼' },
-    { value: 'teacher', label: 'Teacher', icon: '👩‍🏫' },
-    { value: 'student', label: 'Student', icon: '👨‍🎓' },
-    { value: 'parent', label: 'Parent', icon: '👨‍👧' },
+  const roles: { value: UserRole; label: string; icon: string; desc: string }[] = [
+    { value: 'superadmin', label: 'Super Admin', icon: '🛡️', desc: 'Platform owner' },
+    { value: 'admin', label: 'School Admin', icon: '👨‍💼', desc: 'School manager' },
+    { value: 'teacher', label: 'Teacher', icon: '👩‍🏫', desc: 'Instructor' },
+    { value: 'student', label: 'Student', icon: '👨‍🎓', desc: 'Learner' },
+    { value: 'parent', label: 'Parent', icon: '👨‍👧', desc: 'Guardian' },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(selectedRole);
-    navigate('/dashboard');
+    navigate(selectedRole === 'superadmin' ? '/superadmin' : '/dashboard');
   };
 
   return (
     <div className="min-h-screen flex gradient-mesh">
-      {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 gradient-primary opacity-90" />
         <div className="relative z-10 flex flex-col justify-center p-16 text-primary-foreground">
@@ -37,7 +37,7 @@ export default function LoginPage() {
             <span className="font-display text-2xl font-bold">EduFlow</span>
           </Link>
           <h2 className="font-display text-4xl font-bold mb-4">Welcome to the future of school management</h2>
-          <p className="text-primary-foreground/80 text-lg">Manage students, teachers, attendance, fees, and more — all in one platform.</p>
+          <p className="text-primary-foreground/80 text-lg">Manage students, teachers, attendance, fees, results and more — all in one platform.</p>
           <div className="mt-12 grid grid-cols-2 gap-4">
             {[
               { n: '500+', l: 'Schools' },
@@ -54,13 +54,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md"
-        >
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-md">
           <div className="glass-strong rounded-2xl p-8">
             <div className="lg:hidden flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
@@ -75,23 +70,22 @@ export default function LoginPage() {
               {isSignup ? 'Start your free trial today' : 'Sign in to your account'}
             </p>
 
-            {/* Role selector */}
             <div className="mb-6">
               <label className="text-sm font-medium mb-2 block">Select Role (Demo)</label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 {roles.map(r => (
                   <button
                     key={r.value}
                     type="button"
                     onClick={() => setSelectedRole(r.value)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-xl text-xs font-medium transition-all ${
+                    className={`flex flex-col items-center gap-0.5 p-2 rounded-xl text-[10px] font-medium transition-all ${
                       selectedRole === r.value
                         ? 'bg-primary/10 border-2 border-primary text-primary shadow-sm'
                         : 'glass hover:bg-primary/5 border-2 border-transparent'
                     }`}
                   >
-                    <span className="text-xl">{r.icon}</span>
-                    {r.label}
+                    <span className="text-lg">{r.icon}</span>
+                    <span className="leading-tight text-center">{r.label}</span>
                   </button>
                 ))}
               </div>
@@ -101,35 +95,18 @@ export default function LoginPage() {
               {isSignup && (
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent"
-                  />
+                  <input type="text" placeholder="Full Name" className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent" />
                 </div>
               )}
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  defaultValue={`${selectedRole}@school.com`}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent"
-                />
+                <input type="email" placeholder="Email address" defaultValue={`${selectedRole}@school.com`} className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent" />
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  defaultValue="demo123"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent"
-                />
+                <input type="password" placeholder="Password" defaultValue="demo123" className="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent" />
               </div>
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl gradient-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-              >
+              <button type="submit" className="w-full py-3 rounded-xl gradient-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                 {isSignup ? 'Create Account' : 'Sign In'} <ArrowRight className="w-4 h-4" />
               </button>
             </form>

@@ -3,8 +3,8 @@ import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-context';
 import {
   GraduationCap, LayoutDashboard, Users, BookOpen, Calendar, BarChart3,
-  DollarSign, Briefcase, Receipt, UserCheck, Clock, Bell, Globe, Settings,
-  LogOut, Sun, Moon, Menu, X, ChevronDown
+  DollarSign, Briefcase, Receipt, UserCheck, Clock, Bell, Settings,
+  LogOut, Sun, Moon, Menu, X, Palmtree
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { label: 'Results', path: '/dashboard/results', icon: BarChart3, roles: ['admin', 'teacher', 'student', 'parent'] },
   { label: 'Fees', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'parent'] },
   { label: 'Schedule', path: '/dashboard/schedule', icon: Clock, roles: ['admin', 'teacher', 'student'] },
+  { label: 'Leave', path: '/dashboard/leave', icon: Palmtree, roles: ['admin', 'teacher', 'student'] },
   { label: 'Payroll', path: '/dashboard/payroll', icon: Briefcase, roles: ['admin'] },
   { label: 'Expenses', path: '/dashboard/expenses', icon: Receipt, roles: ['admin'] },
   { label: 'Notifications', path: '/dashboard/notifications', icon: Bell, roles: ['admin', 'teacher', 'student', 'parent'] },
@@ -51,12 +52,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-background gradient-mesh">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={`fixed top-0 left-0 h-full w-64 z-50 glass-strong border-r border-border flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="flex items-center justify-between h-16 px-5 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
@@ -70,7 +69,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {/* School indicator */}
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-xs text-muted-foreground">Current School</p>
+          <p className="text-sm font-semibold truncate">Lincoln Academy</p>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
           {filteredNav.map(item => {
             const active = location.pathname === item.path;
             return (
@@ -87,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="p-3 border-t border-border space-y-2">
+        <div className="p-3 border-t border-border space-y-1">
           <button onClick={toggle} className="nav-item w-full">
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             {isDark ? 'Light Mode' : 'Dark Mode'}
@@ -99,9 +104,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Main */}
       <div className="lg:ml-64 min-h-screen flex flex-col">
-        {/* Top bar */}
         <header className="h-16 glass-strong border-b border-border flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
