@@ -11,49 +11,55 @@ export default function TeachersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="font-display text-2xl font-bold">Teachers</h2>
-        <button className="px-4 py-2 rounded-lg gradient-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <button className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Add Teacher
         </button>
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search teachers..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-transparent"
-        />
+        <input type="text" placeholder="Search teachers..." value={search} onChange={e => setSearch(e.target.value)} className="input-field pl-10" />
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((t, i) => (
-          <motion.div
-            key={t.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="glass-card-hover"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-3xl">{t.avatar}</span>
-              <div>
-                <p className="font-semibold">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{t.subject}</p>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <p className="text-muted-foreground">📧 {t.email}</p>
-              <p className="text-muted-foreground">📱 {t.phone}</p>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {t.classes.map(c => (
-                  <span key={c} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{c}</span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+      {/* Table view */}
+      <div className="card-white overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="table-header">Photo</th>
+              <th className="table-header">Name</th>
+              <th className="table-header">Subject</th>
+              <th className="table-header">Phone</th>
+              <th className="table-header">Salary (PKR)</th>
+              <th className="table-header">Classes</th>
+              <th className="table-header">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((t, i) => (
+              <motion.tr key={t.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <td className="table-cell"><span className="text-2xl">{t.avatar}</span></td>
+                <td className="table-cell">
+                  <p className="font-medium">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.email}</p>
+                </td>
+                <td className="table-cell">{t.subject}</td>
+                <td className="table-cell text-muted-foreground">{t.phone}</td>
+                <td className="table-cell font-medium">PKR {t.salary.toLocaleString()}</td>
+                <td className="table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {t.classes.map(c => (
+                      <span key={c} className="badge bg-primary/10 text-primary">{c}</span>
+                    ))}
+                  </div>
+                </td>
+                <td className="table-cell">
+                  <span className={`badge ${t.status === 'active' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>{t.status}</span>
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

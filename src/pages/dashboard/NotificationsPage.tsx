@@ -1,14 +1,13 @@
 import { notifications } from '@/lib/demo-data';
-import { AlertTriangle, CheckCircle, Calendar, Bell } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Bell } from 'lucide-react';
 
 export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-bold">Notifications</h2>
-
       <div className="space-y-3">
         {notifications.map(n => (
-          <div key={n.id} className={`glass-card flex items-start gap-4 ${n.read ? 'opacity-70' : ''}`}>
+          <div key={n.id} className={`card-white flex items-start gap-4 ${n.read ? 'opacity-70' : ''}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
               n.type === 'warning' ? 'bg-warning/10 text-warning' :
               n.type === 'success' ? 'bg-success/10 text-success' :
