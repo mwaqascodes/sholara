@@ -10,23 +10,29 @@ interface I18nContextType {
 }
 
 const translations: Record<string, Record<Lang, string>> = {
-  // Nav
   'nav.dashboard': { en: 'Dashboard', ur: 'ڈیش بورڈ' },
+  'nav.analytics': { en: 'Analytics', ur: 'تجزیات' },
   'nav.students': { en: 'Students', ur: 'طلباء' },
   'nav.teachers': { en: 'Teachers', ur: 'اساتذہ' },
   'nav.attendance': { en: 'Attendance', ur: 'حاضری' },
   'nav.results': { en: 'Exam Results', ur: 'امتحانی نتائج' },
+  'nav.homework': { en: 'Homework', ur: 'ہوم ورک' },
   'nav.fees': { en: 'Fee Management', ur: 'فیس مینجمنٹ' },
   'nav.payroll': { en: 'Payroll', ur: 'تنخواہ' },
+  'nav.expenses': { en: 'Expenses', ur: 'اخراجات' },
+  'nav.calendar': { en: 'Academic Calendar', ur: 'تعلیمی کیلنڈر' },
   'nav.timetable': { en: 'Timetable', ur: 'ٹائم ٹیبل' },
+  'nav.merit': { en: 'Merit System', ur: 'میرٹ سسٹم' },
+  'nav.inventory': { en: 'Inventory', ur: 'انوینٹری' },
   'nav.announcements': { en: 'Announcements', ur: 'اعلانات' },
+  'nav.notifications': { en: 'Notifications', ur: 'اطلاعات' },
   'nav.promotion': { en: 'Class Promotion', ur: 'کلاس پروموشن' },
+  'nav.admissions': { en: 'Admissions', ur: 'داخلے' },
+  'nav.resultCard': { en: 'Result Card', ur: 'رزلٹ کارڈ' },
   'nav.certificates': { en: 'Certificates / SLC', ur: 'سرٹیفکیٹ' },
   'nav.settings': { en: 'Settings', ur: 'ترتیبات' },
   'nav.leave': { en: 'Leave', ur: 'چھٹی' },
-  'nav.expenses': { en: 'Expenses', ur: 'اخراجات' },
 
-  // Dashboard
   'dash.welcome': { en: 'Welcome back', ur: 'خوش آمدید' },
   'dash.totalStudents': { en: 'Total Students', ur: 'کل طلباء' },
   'dash.totalTeachers': { en: 'Total Teachers', ur: 'کل اساتذہ' },
@@ -41,18 +47,13 @@ const translations: Record<string, Record<Lang, string>> = {
   'dash.monthlyFees': { en: 'Monthly Fee Collection', ur: 'ماہانہ فیس وصولی' },
   'dash.attendanceBreakdown': { en: 'Attendance Breakdown', ur: 'حاضری کی تفصیل' },
 
-  // Login
   'login.title': { en: 'Welcome to PakEducate', ur: 'پاک ایجوکیٹ میں خوش آمدید' },
-  'login.subtitle': { en: 'Pakistan\'s AI-Powered School Management', ur: 'پاکستان کا AI سکول مینجمنٹ' },
+  'login.subtitle': { en: "Pakistan's AI-Powered School Management", ur: 'پاکستان کا AI سکول مینجمنٹ' },
   'login.email': { en: 'Email Address', ur: 'ای میل ایڈریس' },
   'login.password': { en: 'Password', ur: 'پاس ورڈ' },
   'login.role': { en: 'Select Role', ur: 'کردار منتخب کریں' },
   'login.signin': { en: 'Sign In', ur: 'سائن ان' },
-  'login.admin': { en: 'Admin', ur: 'ایڈمن' },
-  'login.teacher': { en: 'Teacher', ur: 'استاد' },
-  'login.student': { en: 'Student', ur: 'طالبعلم' },
 
-  // Common
   'common.search': { en: 'Search...', ur: 'تلاش کریں...' },
   'common.add': { en: 'Add', ur: 'شامل کریں' },
   'common.edit': { en: 'Edit', ur: 'ترمیم' },
@@ -74,10 +75,7 @@ const translations: Record<string, Record<Lang, string>> = {
 };
 
 const I18nContext = createContext<I18nContextType>({
-  lang: 'en',
-  setLang: () => {},
-  t: (k) => k,
-  isRTL: false,
+  lang: 'en', setLang: () => {}, t: (k) => k, isRTL: false,
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -93,9 +91,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isRTL]);
 
-  const t = (key: string): string => {
-    return translations[key]?.[lang] || key;
-  };
+  const t = (key: string): string => translations[key]?.[lang] || key;
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t, isRTL }}>

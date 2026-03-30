@@ -25,6 +25,13 @@ import SettingsPage from "./pages/dashboard/SettingsPage";
 import AnnouncementsPage from "./pages/dashboard/AnnouncementsPage";
 import PromotionPage from "./pages/dashboard/PromotionPage";
 import CertificatesPage from "./pages/dashboard/CertificatesPage";
+import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
+import CalendarPage from "./pages/dashboard/CalendarPage";
+import HomeworkPage from "./pages/dashboard/HomeworkPage";
+import MeritPage from "./pages/dashboard/MeritPage";
+import InventoryPage from "./pages/dashboard/InventoryPage";
+import AdmissionsPage from "./pages/dashboard/AdmissionsPage";
+import ResultCardPage from "./pages/dashboard/ResultCardPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +67,13 @@ const App = () => (
                 <Route path="/dashboard/announcements" element={<DashboardRoute><AnnouncementsPage /></DashboardRoute>} />
                 <Route path="/dashboard/promotion" element={<DashboardRoute><PromotionPage /></DashboardRoute>} />
                 <Route path="/dashboard/certificates" element={<DashboardRoute><CertificatesPage /></DashboardRoute>} />
+                <Route path="/dashboard/analytics" element={<DashboardRoute><AnalyticsPage /></DashboardRoute>} />
+                <Route path="/dashboard/calendar" element={<DashboardRoute><CalendarPage /></DashboardRoute>} />
+                <Route path="/dashboard/homework" element={<DashboardRoute><HomeworkPage /></DashboardRoute>} />
+                <Route path="/dashboard/merit" element={<DashboardRoute><MeritPage /></DashboardRoute>} />
+                <Route path="/dashboard/inventory" element={<DashboardRoute><InventoryPage /></DashboardRoute>} />
+                <Route path="/dashboard/admissions" element={<DashboardRoute><AdmissionsPage /></DashboardRoute>} />
+                <Route path="/dashboard/result-card" element={<DashboardRoute><ResultCardPage /></DashboardRoute>} />
                 <Route path="/dashboard/settings" element={<DashboardRoute><SettingsPage /></DashboardRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
