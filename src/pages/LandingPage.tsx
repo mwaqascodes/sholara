@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Users, BarChart3, Calendar, DollarSign, Shield, BookOpen, Bell, ArrowRight, Star, CheckCircle2, Menu, X } from 'lucide-react';
+import { GraduationCap, Users, BarChart3, Calendar, DollarSign, Shield, BookOpen, Bell, ArrowRight, Star, CheckCircle2, Menu, X, Sparkles, Bot, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import BackgroundOrbs from '@/components/BackgroundOrbs';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -9,137 +10,120 @@ const fadeUp = {
 };
 
 const features = [
-  { icon: Users, title: 'Student Management', desc: 'Complete student profiles with Urdu/English names, parent linking, and academic history.' },
-  { icon: Calendar, title: 'Attendance Tracking', desc: 'Daily digital attendance with calendar heatmaps and monthly reports.' },
-  { icon: BarChart3, title: 'Result Management', desc: 'Marks entry, auto report cards with grades (A+ to F), PDF generation.' },
-  { icon: DollarSign, title: 'Fee Management', desc: 'PKR fee collection via Cash, JazzCash, EasyPaisa with receipt generation.' },
-  { icon: BookOpen, title: 'Timetable Builder', desc: 'Weekly timetable (Mon-Sat, 8 periods) with teacher & room assignment.' },
-  { icon: Bell, title: 'Announcements', desc: 'School-wide or class-specific announcements for students and teachers.' },
+  { icon: Bot, title: '🤖 AI School Assistant', desc: 'Natural language commands in Urdu & English. Ask anything about your school.' },
+  { icon: Users, title: '👨‍🎓 Student Management', desc: 'Complete records with photo, B-Form, parent linking.' },
+  { icon: Calendar, title: '📋 Smart Attendance', desc: 'One-click marking with auto-alerts to parents.' },
+  { icon: DollarSign, title: '💰 Fee Automation', desc: 'JazzCash/EasyPaisa, auto receipts, defaulter tracking.' },
+  { icon: BarChart3, title: '📝 Exam & Results', desc: 'Auto report cards, rank lists, performance analytics.' },
+  { icon: BookOpen, title: '💼 Payroll System', desc: 'Teacher salaries, payslips, deductions, bonuses.' },
 ];
 
 const testimonials = [
-  { name: 'Dr. Amjad Hussain', role: 'Principal, Al-Noor Academy Lahore', text: 'PakEducate نے ہمارے اسکول کا مکمل نظام بدل دیا۔ بہترین پلیٹ فارم!', rating: 5 },
-  { name: 'Muhammad Irfan', role: 'IT Head, City School Karachi', text: 'Very professional system. Our teachers love the attendance and result modules.', rating: 5 },
-  { name: 'Samina Bibi', role: 'Parent, Islamabad', text: 'I can check my son\'s attendance, results and fees anytime on my phone. Amazing!', rating: 5 },
+  { name: 'Principal, Lahore Grammar School', text: "PakEducate ne hamare school ka kaam 80% reduce kar diya", city: 'Lahore' },
+  { name: 'Admin, Beacon House Campus', text: "AI assistant Urdu mein samajhta hai, bohat acha hai", city: 'Karachi' },
+  { name: 'Manager, City School', text: "Fees collection ab 3x faster hai", city: 'Islamabad' },
 ];
 
 const plans = [
-  { name: 'Basic', price: 'PKR 5,000', period: '/month', features: ['Up to 200 students', 'Attendance & Results', 'Fee management', 'Email support'], cta: 'Start Free Trial', popular: false },
-  { name: 'Pro', price: 'PKR 15,000', period: '/month', features: ['Up to 1,000 students', 'Everything in Basic', 'Payroll & Expenses', 'Parent portal', 'Priority support'], cta: 'Start Free Trial', popular: true },
-  { name: 'Enterprise', price: 'PKR 35,000', period: '/month', features: ['Unlimited students', 'Everything in Pro', 'Multi-school support', 'Custom integrations', 'Dedicated manager'], cta: 'Contact Sales', popular: false },
+  { name: 'Basic', price: 'PKR 2,000', features: ['200 students', 'Core features', 'Email support', '1 campus'], popular: false },
+  { name: 'Professional', price: 'PKR 5,000', features: ['800 students', 'All features + AI', 'WhatsApp alerts', '3 campuses', 'Priority support'], popular: true },
+  { name: 'Enterprise', price: 'PKR 12,000', features: ['Unlimited students', 'White-label', 'API access', 'Unlimited campuses', 'Dedicated manager'], popular: false },
+];
+
+const faqs = [
+  { q: 'Is there a free trial?', a: 'Yes! Every plan includes a 30-day free trial. No credit card required.' },
+  { q: 'Does it support Urdu?', a: 'Absolutely. Full bilingual interface with Noto Nastaliq Urdu font support.' },
+  { q: 'Can I import existing student data?', a: 'Yes, you can import students via Excel/CSV with our bulk import tool.' },
+  { q: 'Is it mobile-friendly?', a: 'Yes, PakEducate works perfectly on phones, tablets, and desktops.' },
+  { q: 'How does the AI assistant work?', a: 'Just type or speak commands like "Show fee defaulters" and the AI handles it.' },
+  { q: 'Can parents access the portal?', a: 'Yes, parents get read-only access to results, attendance, and fees.' },
 ];
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 bg-card/95 backdrop-blur-sm border-b border-border">
+    <div className="app-bg min-h-screen relative">
+      <BackgroundOrbs />
+
+      {/* Navbar */}
+      <nav className="fixed top-0 w-full z-50 glass-navbar">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
+          <Link to="/" className="flex items-center gap-2 relative z-10">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}>
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-display text-xl font-bold">PakEducate</span>
+            <span className="font-display text-xl font-bold" style={{ color: '#f1f5f9' }}>PakEducate</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
-            <Link to="/login" className="text-sm font-medium text-foreground">Log in</Link>
-            <Link to="/login" className="btn-primary">
-              Start Free Demo
-            </Link>
+            {['Features', 'Pricing', 'About', 'Contact'].map(l => (
+              <a key={l} href={`#${l.toLowerCase()}`} className="text-sm transition-colors" style={{ color: 'rgba(241,245,249,0.6)' }}>{l}</a>
+            ))}
+            <Link to="/login" className="text-sm font-medium" style={{ color: '#f1f5f9' }}>Login</Link>
+            <Link to="/login" className="glass-btn-primary text-sm">Start Free Trial</Link>
           </div>
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <button className="md:hidden relative z-10" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X className="w-6 h-6" style={{ color: '#f1f5f9' }} /> : <Menu className="w-6 h-6" style={{ color: '#f1f5f9' }} />}
           </button>
         </div>
         {mobileMenuOpen && (
-          <div className="md:hidden bg-card border-t border-border p-4 flex flex-col gap-3">
-            <a href="#features" className="text-sm py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
-            <a href="#pricing" className="text-sm py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
-            <Link to="/login" className="text-sm py-2 font-medium">Log in</Link>
-            <Link to="/login" className="btn-primary text-center">
-              Start Free Demo
-            </Link>
+          <div className="md:hidden glass-card mx-4 mb-4 p-4 flex flex-col gap-3" style={{ borderRadius: 16 }}>
+            {['Features', 'Pricing'].map(l => <a key={l} href={`#${l.toLowerCase()}`} className="text-sm py-2" style={{ color: '#f1f5f9' }} onClick={() => setMobileMenuOpen(false)}>{l}</a>)}
+            <Link to="/login" className="glass-btn-primary text-center text-sm">Start Free Trial</Link>
           </div>
         )}
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-6 text-sm font-medium">
-              <Shield className="w-4 h-4" />
-              Pakistan's #1 School Management Platform
+      <section className="pt-32 pb-20 relative">
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-sm font-medium" style={{ background: 'rgba(22,163,74,0.15)', color: '#22c55e', border: '1px solid rgba(22,163,74,0.3)' }}>
+              <Sparkles className="w-4 h-4" /> 🤖 AI Assistant Included
             </div>
-            <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-6">
-              AI-Powered{' '}
-              <span className="text-primary">School Management</span>{' '}
-              for Pakistan
+            <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-4" style={{ color: '#f1f5f9' }}>
+              Pakistan's First <span style={{ color: '#22c55e' }}>AI-Powered</span> School Management System
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Complete digital school ecosystem — manage students, results, fees, attendance and more. Supports Urdu & English bilingual interface.
+            <p className="text-lg md:text-xl mb-2 font-urdu" style={{ color: 'rgba(241,245,249,0.5)' }}>
+              پاکستان کا پہلا AI اسکول مینجمنٹ سسٹم
+            </p>
+            <p className="text-lg mb-10 max-w-2xl mx-auto" style={{ color: 'rgba(241,245,249,0.55)' }}>
+              Complete school ecosystem — manage students, results, fees, attendance and more.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/login"
-                className="px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-lg shadow-primary/25"
-              >
-                Start Free Demo <ArrowRight className="w-5 h-5" />
+              <Link to="/login" className="glass-btn-primary px-8 py-3.5 text-lg flex items-center gap-2">
+                Start Free 30-Day Trial <ArrowRight className="w-5 h-5" />
               </Link>
-              <a
-                href="#features"
-                className="px-8 py-3.5 rounded-xl border border-border text-foreground font-semibold text-lg hover:bg-muted transition-colors"
-              >
-                Explore Features
-              </a>
+              <a href="#features" className="glass-btn-secondary px-8 py-3.5 text-lg">Watch Demo</a>
+            </div>
+            <div className="flex items-center justify-center gap-8 mt-10">
+              {[{ n: '500+', l: 'Schools' }, { n: '50,000+', l: 'Students' }, { n: '99.9%', l: 'Uptime' }].map(s => (
+                <div key={s.l} className="text-center">
+                  <p className="text-xl font-bold font-display" style={{ color: '#f1f5f9' }}>{s.n}</p>
+                  <p className="text-xs" style={{ color: 'rgba(241,245,249,0.4)' }}>{s.l}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
 
           {/* Dashboard preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-20 max-w-5xl mx-auto"
-          >
-            <div className="rounded-2xl border border-border shadow-2xl shadow-primary/10 overflow-hidden">
-              <div className="bg-card p-6 space-y-4">
+          <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="mt-16 max-w-5xl mx-auto">
+            <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
+              <div className="p-6 space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                  <div className="w-3 h-3 rounded-full bg-warning/60" />
-                  <div className="w-3 h-3 rounded-full bg-success/60" />
-                  <span className="text-xs text-muted-foreground ml-2">PakEducate — Admin Dashboard</span>
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#ef4444' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#f59e0b' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: '#22c55e' }} />
+                  <span className="text-xs ml-2" style={{ color: 'rgba(241,245,249,0.4)' }}>PakEducate — Admin Dashboard</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Students', value: '450' },
-                    { label: 'Teachers', value: '28' },
-                    { label: 'Attendance', value: '87%' },
-                    { label: 'Fees', value: 'PKR 1.2L' },
-                  ].map(s => (
-                    <div key={s.label} className="card-white p-4">
-                      <p className="text-xs text-muted-foreground">{s.label}</p>
-                      <p className="text-2xl font-bold font-display text-primary">{s.value}</p>
+                  {[{ l: 'Students', v: '847' }, { l: 'Teachers', v: '42' }, { l: 'Attendance', v: '91.2%' }, { l: 'Revenue', v: '₨ 4.2L' }].map(s => (
+                    <div key={s.l} className="glass-card" style={{ padding: '1rem' }}>
+                      <p className="text-xs" style={{ color: 'rgba(241,245,249,0.4)' }}>{s.l}</p>
+                      <p className="text-2xl font-bold font-display" style={{ color: '#22c55e' }}>{s.v}</p>
                     </div>
                   ))}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="card-white p-4 h-32 flex items-center justify-center text-muted-foreground text-sm">
-                    📊 Monthly Fee Collection Chart
-                  </div>
-                  <div className="card-white p-4 h-32 flex items-center justify-center text-muted-foreground text-sm">
-                    📈 Attendance Breakdown
-                  </div>
                 </div>
               </div>
             </div>
@@ -148,57 +132,45 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 bg-muted/30">
+      <section id="features" className="py-24 relative z-10">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
-            <motion.h2 variants={fadeUp} custom={0} className="font-display text-4xl font-bold mb-4">
-              Everything You Need to <span className="text-primary">Run Your School</span>
+            <motion.h2 variants={fadeUp} custom={0} className="font-display text-4xl font-bold mb-4" style={{ color: '#f1f5f9' }}>
+              Everything You Need to <span style={{ color: '#22c55e' }}>Run Your School</span>
             </motion.h2>
-            <motion.p variants={fadeUp} custom={1} className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              From student enrollment to result cards — complete school management in Urdu & English.
-            </motion.p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="card-white-hover group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <f.icon className="w-6 h-6 text-primary-foreground" />
+              <motion.div key={f.title} variants={fadeUp} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} className="glass-card-hover group">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style={{ background: 'rgba(22,163,74,0.15)' }}>
+                  <f.icon className="w-6 h-6" style={{ color: '#22c55e' }} />
                 </div>
-                <h3 className="font-display text-lg font-semibold mb-2">{f.title}</h3>
-                <p className="text-muted-foreground text-sm">{f.desc}</p>
+                <h3 className="font-display text-lg font-semibold mb-2" style={{ color: '#f1f5f9' }}>{f.title}</h3>
+                <p className="text-sm" style={{ color: 'rgba(241,245,249,0.5)' }}>{f.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24">
-        <div className="container mx-auto px-4">
-          <h2 className="font-display text-4xl font-bold text-center mb-16">
-            Trusted by <span className="text-primary">Schools Across Pakistan</span>
+      {/* How it works */}
+      <section className="py-24 relative z-10">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="font-display text-4xl font-bold mb-16" style={{ color: '#f1f5f9' }}>
+            Get Started in <span style={{ color: '#22c55e' }}>3 Simple Steps</span>
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div key={i} variants={fadeUp} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} className="card-white p-6">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-warning text-warning" />
-                  ))}
+          <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            {[
+              { step: '1', title: 'Register Your School', desc: 'Takes just 2 minutes' },
+              { step: '2', title: 'Add Students & Teachers', desc: 'Import from Excel' },
+              { step: '3', title: 'Manage with AI', desc: 'Everything automated' },
+            ].map((s, i) => (
+              <motion.div key={s.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }} viewport={{ once: true }} className="text-center">
+                <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-2xl font-bold" style={{ background: 'rgba(22,163,74,0.15)', color: '#22c55e', border: '1px solid rgba(22,163,74,0.3)' }}>
+                  {s.step}
                 </div>
-                <p className="text-foreground mb-4">"{t.text}"</p>
-                <div>
-                  <p className="font-semibold text-sm">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
-                </div>
+                <h3 className="font-display font-semibold mb-1" style={{ color: '#f1f5f9' }}>{s.title}</h3>
+                <p className="text-sm" style={{ color: 'rgba(241,245,249,0.45)' }}>{s.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -206,50 +178,38 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 bg-muted/30">
+      <section id="pricing" className="py-24 relative z-10">
         <div className="container mx-auto px-4">
-          <h2 className="font-display text-4xl font-bold text-center mb-4">
-            Simple, <span className="text-primary">Affordable Pricing</span>
+          <h2 className="font-display text-4xl font-bold text-center mb-4" style={{ color: '#f1f5f9' }}>
+            Simple, <span style={{ color: '#22c55e' }}>Affordable Pricing</span>
           </h2>
-          <p className="text-muted-foreground text-center mb-16 text-lg">Start free, scale as you grow.</p>
+          <p className="text-center mb-2 text-sm" style={{ color: 'rgba(241,245,249,0.5)' }}>30-day free trial · No credit card</p>
+          <p className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold" style={{ background: 'rgba(22,163,74,0.15)', color: '#22c55e', border: '1px solid rgba(22,163,74,0.3)' }}>Save 20% with annual plan</span>
+          </p>
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {plans.map((p, i) => (
-              <motion.div
-                key={p.name}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className={`card-white relative ${p.popular ? 'ring-2 ring-primary shadow-xl shadow-primary/15' : ''}`}
-              >
+              <motion.div key={p.name} variants={fadeUp} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                className={`glass-card relative ${p.popular ? 'ring-2' : ''}`} style={p.popular ? { borderColor: '#22c55e', boxShadow: '0 0 40px rgba(22,163,74,0.2)' } : {}}>
                 {p.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', color: 'white' }}>
                     Most Popular
                   </div>
                 )}
-                <h3 className="font-display text-xl font-bold mb-2">{p.name}</h3>
+                <h3 className="font-display text-xl font-bold mb-2" style={{ color: '#f1f5f9' }}>{p.name}</h3>
                 <div className="mb-6">
-                  <span className="text-3xl font-bold font-display">{p.price}</span>
-                  <span className="text-muted-foreground text-sm">{p.period}</span>
+                  <span className="text-3xl font-bold font-display" style={{ color: '#22c55e' }}>{p.price}</span>
+                  <span className="text-sm" style={{ color: 'rgba(241,245,249,0.4)' }}>/month</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {p.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      {f}
+                    <li key={f} className="flex items-center gap-2 text-sm" style={{ color: 'rgba(241,245,249,0.7)' }}>
+                      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: '#22c55e' }} /> {f}
                     </li>
                   ))}
                 </ul>
-                <Link
-                  to="/login"
-                  className={`block text-center py-2.5 rounded-lg font-semibold text-sm transition-colors ${
-                    p.popular
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'border border-border hover:bg-muted'
-                  }`}
-                >
-                  {p.cta}
+                <Link to="/login" className={`block text-center py-2.5 rounded-xl font-semibold text-sm transition-all ${p.popular ? 'glass-btn-primary w-full' : 'glass-btn-secondary w-full'}`}>
+                  Start Free Trial
                 </Link>
               </motion.div>
             ))}
@@ -257,36 +217,83 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24 relative z-10">
+        <div className="container mx-auto px-4">
+          <h2 className="font-display text-4xl font-bold text-center mb-16" style={{ color: '#f1f5f9' }}>
+            Trusted by <span style={{ color: '#22c55e' }}>Schools Across Pakistan</span>
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div key={i} variants={fadeUp} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} className="glass-card">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <Star key={j} className="w-4 h-4" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
+                  ))}
+                </div>
+                <p className="mb-4 text-sm" style={{ color: 'rgba(241,245,249,0.8)' }}>"{t.text}"</p>
+                <p className="text-xs font-semibold" style={{ color: '#f1f5f9' }}>{t.name}</p>
+                <p className="text-xs" style={{ color: 'rgba(241,245,249,0.4)' }}>{t.city}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="about" className="py-24 relative z-10">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="font-display text-4xl font-bold text-center mb-12" style={{ color: '#f1f5f9' }}>
+            Frequently Asked <span style={{ color: '#22c55e' }}>Questions</span>
+          </h2>
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <div key={i} className="glass-card cursor-pointer" style={{ padding: 0 }} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <p className="font-medium text-sm" style={{ color: '#f1f5f9' }}>{faq.q}</p>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} style={{ color: 'rgba(241,245,249,0.4)' }} />
+                </div>
+                {openFaq === i && (
+                  <div className="px-5 pb-4">
+                    <p className="text-sm" style={{ color: 'rgba(241,245,249,0.6)' }}>{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="py-12 border-t border-border">
+      <footer className="py-12 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-primary-foreground" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}>
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-display text-xl font-bold">PakEducate</span>
+                <span className="font-display text-xl font-bold" style={{ color: '#f1f5f9' }}>PakEducate</span>
               </div>
-              <p className="text-sm text-muted-foreground">Pakistan's AI-powered school management platform. Bilingual Urdu & English.</p>
+              <p className="text-sm" style={{ color: 'rgba(241,245,249,0.4)' }}>Pakistan's AI-powered school management platform. Bilingual Urdu & English.</p>
             </div>
             {[
               { title: 'Product', links: ['Features', 'Pricing', 'Demo', 'Updates'] },
               { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
-              { title: 'Legal', links: ['Privacy', 'Terms', 'Security', 'GDPR'] },
+              { title: 'Legal', links: ['Privacy', 'Terms', 'Security'] },
             ].map(col => (
               <div key={col.title}>
-                <h4 className="font-semibold text-sm mb-3">{col.title}</h4>
+                <h4 className="font-semibold text-sm mb-3" style={{ color: '#f1f5f9' }}>{col.title}</h4>
                 <ul className="space-y-2">
                   {col.links.map(l => (
-                    <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l}</a></li>
+                    <li key={l}><a href="#" className="text-sm transition-colors" style={{ color: 'rgba(241,245,249,0.4)' }}>{l}</a></li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <div className="mt-12 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            © 2026 PakEducate. All rights reserved. 🇵🇰
+          <div className="mt-12 pt-6 text-center text-sm" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(241,245,249,0.35)' }}>
+            Made with ❤️ for Pakistani Schools · © 2026 PakEducate 🇵🇰
           </div>
         </div>
       </footer>
