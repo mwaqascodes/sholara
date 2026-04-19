@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Sparkles, X, Send, Bot, Mic, MessageCircle, Minimize2, Trash2 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Sparkles, X, Send, Bot, Mic, MessageCircle, Minimize2, Trash2, CheckCircle2 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { students, feeRecords, examResults, attendanceData, teachers } from '@/lib/demo-data';
+import { feeRecords, examResults, attendanceData } from '@/lib/demo-data';
+import { actionStore, parseAndExecuteActions, useActionStore } from '@/lib/action-store';
 
 interface Message {
   id: string;
