@@ -23,6 +23,7 @@ const PAGE_LABELS: Record<string, { label: string; chips: string[] }> = {
 };
 
 function buildSchoolContext(): string {
+  const { students, teachers } = actionStore.getState();
   const totalStudents = students.length;
   const totalTeachers = teachers.length;
   const totalSalary = teachers.reduce((s, t) => s + t.salary, 0);
@@ -35,6 +36,7 @@ function buildSchoolContext(): string {
   return [
     `School: Urdu AI School (Demo) — Lahore`,
     `Students: ${totalStudents} | Teachers: ${totalTeachers}`,
+    `Recent students (id|name|class): ${students.slice(0, 8).map(s => `${s.id}|${s.name}|${s.class}`).join('; ')}`,
     `Monthly payroll: ₨${totalSalary.toLocaleString()}`,
     `Fees collected (March): ₨${collected.toLocaleString()} of ₨${expected.toLocaleString()} (${Math.round(collected / expected * 100)}%)`,
     `Defaulters (${defaulters.length}): ${defaulters.map(d => `${d.studentName} ${d.class} ₨${d.amount - d.paid}`).join('; ')}`,
