@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Sparkles, X, Send, Bot, Mic, MessageCircle, Minimize2, Trash2 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Sparkles, X, Send, Bot, Mic, MessageCircle, Minimize2, Trash2, CheckCircle2 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { students, feeRecords, examResults, attendanceData, teachers } from '@/lib/demo-data';
+import { feeRecords, examResults, attendanceData } from '@/lib/demo-data';
+import { actionStore, parseAndExecuteActions, useActionStore } from '@/lib/action-store';
 
 interface Message {
   id: string;
@@ -22,6 +23,7 @@ const PAGE_LABELS: Record<string, { label: string; chips: string[] }> = {
 };
 
 function buildSchoolContext(): string {
+  const { students, teachers } = actionStore.getState();
   const totalStudents = students.length;
   const totalTeachers = teachers.length;
   const totalSalary = teachers.reduce((s, t) => s + t.salary, 0);
@@ -34,6 +36,7 @@ function buildSchoolContext(): string {
   return [
     `School: Urdu AI School (Demo) — Lahore`,
     `Students: ${totalStudents} | Teachers: ${totalTeachers}`,
+    `Recent students (id|name|class): ${students.slice(0, 8).map(s => `${s.id}|${s.name}|${s.class}`).join('; ')}`,
     `Monthly payroll: ₨${totalSalary.toLocaleString()}`,
     `Fees collected (March): ₨${collected.toLocaleString()} of ₨${expected.toLocaleString()} (${Math.round(collected / expected * 100)}%)`,
     `Defaulters (${defaulters.length}): ${defaulters.map(d => `${d.studentName} ${d.class} ₨${d.amount - d.paid}`).join('; ')}`,
@@ -49,6 +52,8 @@ const CHAT_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
 
 export default function AIAssistant() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const store = useActionStore();
   const [open, setOpen] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState(false);
   const [input, setInput] = useState('');
@@ -57,13 +62,22 @@ export default function AIAssistant() {
     {
       id: '0',
       role: 'assistant',
-      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Aap mujh se Urdu, Roman Urdu, ya English mein sawal kar sakte hain.\n\nBolein, aaj kya help chahiye?",
+      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Ab main *real actions* bhi kar sakta hoon — student add karna, attendance mark karna, fees record karna, ya kisi page par le jana.\n\nBas bolein: *\"Class 5 mein Ali Hassan add karo\"* ya *\"Open fees page\"*.",
     },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const pageInfo = useMemo(() => PAGE_LABELS[location.pathname] || { label: 'School', chips: ['Aaj ka summary', 'Defaulters', 'At-risk students', 'Generate report'] }, [location.pathname]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.path) navigate(detail.path);
+    };
+    window.addEventListener('ai-navigate', handler);
+    return () => window.removeEventListener('ai-navigate', handler);
+  }, [navigate]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -144,6 +158,12 @@ export default function AIAssistant() {
           }
         }
       }
+      // Stream complete — extract & execute any action blocks, then replace content with cleaned version
+      const { cleaned, results } = parseAndExecuteActions(assistantSoFar);
+      const finalContent = results.length > 0
+        ? `${cleaned}\n\n${results.map(r => `${r.ok ? '✅' : '❌'} ${r.message}`).join('\n')}`
+        : cleaned || assistantSoFar;
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: finalContent } : m));
     } catch (e: any) {
       if (e.name !== 'AbortError') {
         setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Connection error. Dobara try karein.' } : m));
@@ -264,7 +284,7 @@ export default function AIAssistant() {
                   {m.role === 'assistant' ? (
                     <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0 [&_table]:text-xs [&_th]:text-left [&_th]:px-2 [&_th]:py-1 [&_td]:px-2 [&_td]:py-1 [&_table]:border-collapse [&_th]:border [&_th]:border-white/10 [&_td]:border [&_td]:border-white/10 [&_strong]:text-green-300">
                       {m.content ? (
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <ReactMarkdown>{m.content.replace(/```action[\s\S]*?```/g, '⚙️ *Executing action...*')}</ReactMarkdown>
                       ) : (
                         <div className="flex gap-1.5 py-1">
                           {[0, 1, 2].map(i => (
@@ -338,6 +358,25 @@ export default function AIAssistant() {
           </div>
         </div>
       )}
+
+      {/* Live action toasts (triggered by store) */}
+      <div className="fixed bottom-24 right-6 z-[60] flex flex-col gap-2 pointer-events-none">
+        {store.toasts.map(t => (
+          <div
+            key={t.id}
+            className="pointer-events-auto px-4 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2 animate-slide-in-right"
+            style={{
+              background: t.type === 'success' ? 'linear-gradient(135deg,#16a34a,#15803d)' : t.type === 'error' ? 'linear-gradient(135deg,#dc2626,#991b1b)' : 'linear-gradient(135deg,#0ea5e9,#0369a1)',
+              color: 'white',
+              minWidth: '240px',
+              maxWidth: '340px',
+            }}
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
 
       <style>{`
         @keyframes aiPulse {
