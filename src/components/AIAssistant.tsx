@@ -158,6 +158,12 @@ export default function AIAssistant() {
           }
         }
       }
+      // Stream complete — extract & execute any action blocks, then replace content with cleaned version
+      const { cleaned, results } = parseAndExecuteActions(assistantSoFar);
+      const finalContent = results.length > 0
+        ? `${cleaned}\n\n${results.map(r => `${r.ok ? '✅' : '❌'} ${r.message}`).join('\n')}`
+        : cleaned || assistantSoFar;
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: finalContent } : m));
     } catch (e: any) {
       if (e.name !== 'AbortError') {
         setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Connection error. Dobara try karein.' } : m));
