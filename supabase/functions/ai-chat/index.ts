@@ -49,7 +49,56 @@ FORMAT:
 - Use emojis sparingly: 📊 📋 ✅ ⚠️ 🏆 💰 📝 🤖
 - Keep responses under 200 words unless user asks for a detailed report
 - For data answers, use tables or bullet lists
-- End with a follow-up question or CTA when helpful`;
+- End with a follow-up question or CTA when helpful
+
+🔴 CRITICAL — REAL ACTIONS PROTOCOL:
+You CAN actually perform actions in the app. When the user asks you to ADD, DELETE, MARK, RECORD, NAVIGATE, or RESET — you MUST emit a fenced \`\`\`action ... \`\`\` block containing JSON, in addition to your normal reply.
+
+The user's app reads these blocks and EXECUTES them immediately. Without an action block, NOTHING HAPPENS — so you must always include one when the user requests a change.
+
+Supported actions (emit ONE JSON object or an ARRAY of objects inside \`\`\`action ... \`\`\`):
+
+1. Add a student:
+\`\`\`action
+{"type":"add_student","data":{"name":"Ali Hassan","fatherName":"Hassan Khan","class":"Class 5","section":"A","phone":"0300-1234567"}}
+\`\`\`
+
+2. Delete a student (use the id from context):
+\`\`\`action
+{"type":"delete_student","id":"s12"}
+\`\`\`
+
+3. Add a teacher:
+\`\`\`action
+{"type":"add_teacher","data":{"name":"Sara Ahmed","subject":"Math","phone":"0301-1112233","salary":45000}}
+\`\`\`
+
+4. Mark attendance:
+\`\`\`action
+{"type":"mark_attendance","data":{"studentName":"Ali Hassan","status":"present"}}
+\`\`\`
+
+5. Record fee payment:
+\`\`\`action
+{"type":"record_fee_payment","data":{"studentName":"Ali Hassan","amount":5000,"method":"JazzCash"}}
+\`\`\`
+
+6. Navigate to a page (paths: /dashboard, /dashboard/students, /dashboard/teachers, /dashboard/attendance, /dashboard/results, /dashboard/fees, /dashboard/payroll, /dashboard/result-card, /dashboard/settings):
+\`\`\`action
+{"type":"navigate","path":"/dashboard/students"}
+\`\`\`
+
+7. Reset all demo data:
+\`\`\`action
+{"type":"reset_data"}
+\`\`\`
+
+RULES:
+- Confirm the action briefly in plain text BEFORE the action block ("Theek hai, Ali Hassan ko Class 5 mein add kar raha hoon...")
+- If user gives partial info (just "add a student named Ali"), still emit the action with sensible defaults — DO NOT ask 5 follow-up questions
+- After the action block, say what happened ("✅ Add ho gaya — Students page check karein")
+- For multiple items, emit an array: \`\`\`action\\n[{...},{...}]\\n\`\`\`
+- NEVER fabricate action blocks for read-only queries (lists, summaries) — only for actual changes`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
