@@ -59,24 +59,24 @@ export default function StudentsPage() {
               setShowForm(false);
             }}>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Full Name (English)</label><input className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
-                <div><label className="text-sm text-muted-foreground">Full Name (Urdu)</label><input className="input-field mt-1 font-urdu" placeholder="علی حسن" dir="rtl" /></div>
+                <div><label className="text-sm text-muted-foreground">Full Name (English)</label><input name="name" required className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
+                <div><label className="text-sm text-muted-foreground">Full Name (Urdu)</label><input name="nameUrdu" className="input-field mt-1 font-urdu" placeholder="علی حسن" dir="rtl" /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Father's Name</label><input className="input-field mt-1" placeholder="e.g. Muhammad Hassan" /></div>
-                <div><label className="text-sm text-muted-foreground">Date of Birth</label><input type="date" className="input-field mt-1" /></div>
+                <div><label className="text-sm text-muted-foreground">Father's Name</label><input name="fatherName" className="input-field mt-1" placeholder="e.g. Muhammad Hassan" /></div>
+                <div><label className="text-sm text-muted-foreground">Date of Birth</label><input name="dob" type="date" className="input-field mt-1" /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm text-muted-foreground">Class</label>
-                  <select className="input-field mt-1">{allClasses.map(c => <option key={c}>{c}</option>)}</select>
+                  <select name="class" className="input-field mt-1">{allClasses.map(c => <option key={c}>{c}</option>)}</select>
                 </div>
-                <div><label className="text-sm text-muted-foreground">Section</label><input className="input-field mt-1" placeholder="A" /></div>
+                <div><label className="text-sm text-muted-foreground">Section</label><input name="section" className="input-field mt-1" placeholder="A" /></div>
               </div>
-              <div><label className="text-sm text-muted-foreground">Address</label><input className="input-field mt-1" placeholder="House #, Street, City" /></div>
+              <div><label className="text-sm text-muted-foreground">Address</label><input name="address" className="input-field mt-1" placeholder="House #, Street, City" /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Phone Number</label><input className="input-field mt-1" placeholder="0300-1234567" /></div>
-                <div><label className="text-sm text-muted-foreground">Emergency Contact</label><input className="input-field mt-1" placeholder="0321-9876543" /></div>
+                <div><label className="text-sm text-muted-foreground">Phone Number</label><input name="phone" className="input-field mt-1" placeholder="0300-1234567" /></div>
+                <div><label className="text-sm text-muted-foreground">Emergency Contact</label><input name="emergencyContact" className="input-field mt-1" placeholder="0321-9876543" /></div>
               </div>
               <button type="submit" className="btn-primary w-full mt-2">Save Student</button>
             </form>
