@@ -158,7 +158,7 @@ export default function StudentsPage() {
                     <div className="flex gap-1">
                       <button onClick={() => setSelectedStudent(s)} className="p-1.5 rounded hover:bg-muted" title="View"><Eye className="w-4 h-4 text-muted-foreground" /></button>
                       <button className="p-1.5 rounded hover:bg-muted" title="Edit"><Edit className="w-4 h-4 text-muted-foreground" /></button>
-                      <button className="p-1.5 rounded hover:bg-muted" title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></button>
+                      <button onClick={() => { if (confirm(`Delete ${s.name}?`)) actionStore.deleteStudent(s.id); }} className="p-1.5 rounded hover:bg-muted" title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></button>
                     </div>
                   </td>
                 </motion.tr>
