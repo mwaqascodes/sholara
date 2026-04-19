@@ -1,149 +1,251 @@
-import { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, Bot, User } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Sparkles, X, Send, Bot, Mic, MessageCircle, Minimize2, Trash2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { students, feeRecords, examResults, attendanceData, teachers } from '@/lib/demo-data';
 
 interface Message {
   id: string;
-  role: 'user' | 'ai';
-  text: string;
-  data?: any;
+  role: 'user' | 'assistant';
+  content: string;
 }
 
-const quickChips = [
-  'Add Student', 'Mark Attendance', 'Check Fees', 'Generate Report',
-  'Fee Defaulters', 'Top Students', "Today's Absent", 'Class Summary',
-  'Generate Result Card', 'Who Passed?',
-];
+const PAGE_LABELS: Record<string, { label: string; chips: string[] }> = {
+  '/dashboard': { label: 'Dashboard', chips: ['Aaj ka summary', 'At-risk students', 'Top performers', 'Generate monthly report'] },
+  '/dashboard/students': { label: 'Students', chips: ['Add student', 'Incomplete profiles', 'Search by class', 'WhatsApp absent parents'] },
+  '/dashboard/teachers': { label: 'Teachers', chips: ['List teachers', 'Total payroll', 'Add teacher'] },
+  '/dashboard/attendance': { label: 'Attendance', chips: ['Today absent', 'Below 75%', '3-day absentees', 'Mark Class 6 present'] },
+  '/dashboard/results': { label: 'Results', chips: ['Class topper', 'Pass/fail ratio', 'Failed subjects', 'Predict at-risk'] },
+  '/dashboard/fees': { label: 'Fees', chips: ['Defaulters', 'WhatsApp reminder', 'This month collection', 'Forecast'] },
+  '/dashboard/payroll': { label: 'Payroll', chips: ['Process October', 'Total expense', 'Bonus calc'] },
+  '/dashboard/result-card': { label: 'Result Card', chips: ['Generate for top 5', 'Class 10 cards', 'Print all'] },
+};
 
-function getAIResponse(input: string): { text: string; data?: any } {
-  const q = input.toLowerCase();
+function buildSchoolContext(): string {
+  const totalStudents = students.length;
+  const totalTeachers = teachers.length;
+  const totalSalary = teachers.reduce((s, t) => s + t.salary, 0);
+  const collected = feeRecords.reduce((s, f) => s + f.paid, 0);
+  const expected = feeRecords.reduce((s, f) => s + f.amount, 0);
+  const defaulters = feeRecords.filter(f => f.status !== 'paid');
+  const top = [...examResults].sort((a, b) => b.percentage - a.percentage).slice(0, 5);
+  const atRisk = students.filter(s => s.attendance < 80 || s.gpa < 3.0);
 
-  if (q.includes('how many students') || q.includes('total students') || q.includes('kitne student')) {
-    const byClass: Record<string, number> = {};
-    students.forEach(s => { byClass[s.class] = (byClass[s.class] || 0) + 1; });
-    return { text: `Total enrolled students: ${students.length}\n\nBreakdown by class:\n${Object.entries(byClass).map(([c, n]) => `• ${c}: ${n}`).join('\n')}` };
-  }
-
-  if (q.includes('fee defaulter') || q.includes('hasn\'t paid') || q.includes('unpaid') || q.includes('pending fee')) {
-    const defaulters = feeRecords.filter(f => f.status !== 'paid');
-    return {
-      text: `📋 Fee Defaulters: ${defaulters.length} students\n\n${defaulters.map(d => `• ${d.studentName} (${d.class}) — PKR ${(d.amount - d.paid).toLocaleString()} pending`).join('\n')}\n\nTotal pending: PKR ${defaulters.reduce((s, d) => s + (d.amount - d.paid), 0).toLocaleString()}`,
-    };
-  }
-
-  if (q.includes('top student') || q.includes('topper') || q.includes('best student')) {
-    const sorted = [...examResults].sort((a, b) => b.percentage - a.percentage).slice(0, 3);
-    return {
-      text: `🏆 Top Students (Mid-Term 2026):\n\n${sorted.map((s, i) => `${['🥇', '🥈', '🥉'][i]} ${s.studentName} — ${s.percentage}% (${s.grade})`).join('\n')}`,
-    };
-  }
-
-  if (q.includes('absent today') || q.includes('absent yesterday') || q.includes('who was absent')) {
-    const totalAbsent = attendanceData.filter(a => a.date === '25/03/2026').reduce((s, a) => s + a.absent, 0);
-    return { text: `📋 Today's absence report:\n\nTotal absent across all classes: ${totalAbsent} students\n\n${attendanceData.filter(a => a.date === '25/03/2026').map(a => `• ${a.class}: ${a.absent} absent, ${a.leave} on leave`).join('\n')}` };
-  }
-
-  if (q.includes('attendance') && (q.includes('percentage') || q.includes('%'))) {
-    return { text: `📊 Today's overall attendance: 87%\n\nThis is slightly below the monthly average of 91%. Consider sending attendance alerts to parents of frequently absent students.` };
-  }
-
-  if (q.includes('who passed') || q.includes('pass') || q.includes('kaun pass')) {
-    const passed = examResults.filter(r => r.percentage >= 40);
-    return { text: `✅ Passed students (Mid-Term 2026): ${passed.length}/${examResults.length}\n\n${passed.map(s => `• ${s.studentName} — ${s.percentage}% (${s.grade})`).join('\n')}` };
-  }
-
-  if (q.includes('who failed') || q.includes('fail')) {
-    const failed = examResults.filter(r => r.percentage < 40);
-    return { text: failed.length > 0 ? `❌ Failed students: ${failed.length}\n\n${failed.map(s => `• ${s.studentName} — ${s.percentage}%`).join('\n')}` : `🎉 Great news! No students failed in the Mid-Term exam. All students scored above 40%.` };
-  }
-
-  if (q.includes('class summary') || q.includes('class performance')) {
-    return { text: `📊 Class Performance Summary:\n\n• Class 10: Avg 86.7% — 3 students, all passed ✅\n• Class 9: Avg 76.5% — 2 students, all passed ✅\n• Class 8: Avg 69% — 1 student, passed ✅\n\nOverall school average: 80.3%` };
-  }
-
-  if (q.includes('teacher') || q.includes('how many teacher')) {
-    return { text: `👩‍🏫 Total Teachers: ${teachers.length}\n\nTotal monthly payroll: PKR ${teachers.reduce((s, t) => s + t.salary, 0).toLocaleString()}\n\n${teachers.map(t => `• ${t.name} — ${t.subject} (${t.classes.join(', ')})`).join('\n')}` };
-  }
-
-  if (q.includes('add student') || q.includes('new student')) {
-    return { text: `➕ To add a new student, go to Students → Add Student.\n\nOr tell me the details:\n"Add student [Name] to [Class]"\n\nI'll open the form pre-filled for you.` };
-  }
-
-  if (q.includes('generate report') || q.includes('report card') || q.includes('result card')) {
-    return { text: `📄 To generate a result card:\n\n1. Go to Result Card page from the sidebar\n2. Fill in student details\n3. Add subject marks\n4. Click "Generate Result Card"\n5. Download as PDF\n\nOr navigate to: /dashboard/result-card` };
-  }
-
-  if (q.includes('collect fee') || q.includes('fee collection')) {
-    return { text: `💰 Fee Collection Summary (March 2026):\n\nCollected: PKR ${feeRecords.reduce((s, f) => s + f.paid, 0).toLocaleString()}\nExpected: PKR ${feeRecords.reduce((s, f) => s + f.amount, 0).toLocaleString()}\nPending: PKR ${feeRecords.reduce((s, f) => s + (f.amount - f.paid), 0).toLocaleString()}\n\nGo to Fee Management to collect fees.` };
-  }
-
-  if (q.includes('mark attendance') || q.includes('attendance mark')) {
-    return { text: `✅ To mark attendance:\n\n1. Go to Attendance page\n2. Select class and date\n3. Mark each student as Present/Absent/Leave\n4. Click Submit\n\nOr say: "Mark all Class 6 present for today"` };
-  }
-
-  if (q.includes('hello') || q.includes('hi') || q.includes('salam') || q.includes('assalam')) {
-    return { text: `وعلیکم السلام! 👋\n\nI'm your PakEducate AI Assistant. I can help you with:\n\n• Student management\n• Attendance tracking\n• Fee collection\n• Result analysis\n• Report generation\n\nWhat would you like to do today?` };
-  }
-
-  return { text: `I understand you're asking about "${input}". Here are some things I can help with:\n\n• "How many students are enrolled?"\n• "Show fee defaulters"\n• "Who topped Class 10?"\n• "Today's absent students"\n• "Generate result card"\n• "Class performance summary"\n\nTry asking one of these! 🤖` };
+  return [
+    `School: Urdu AI School (Demo) — Lahore`,
+    `Students: ${totalStudents} | Teachers: ${totalTeachers}`,
+    `Monthly payroll: ₨${totalSalary.toLocaleString()}`,
+    `Fees collected (March): ₨${collected.toLocaleString()} of ₨${expected.toLocaleString()} (${Math.round(collected / expected * 100)}%)`,
+    `Defaulters (${defaulters.length}): ${defaulters.map(d => `${d.studentName} ${d.class} ₨${d.amount - d.paid}`).join('; ')}`,
+    `Top students: ${top.map(t => `${t.studentName} ${t.percentage}%`).join('; ')}`,
+    `At-risk (low attendance/GPA): ${atRisk.map(s => `${s.name} ${s.class} (${s.attendance}% att, ${s.gpa} GPA)`).join('; ') || 'none'}`,
+    `Today's absentees: ${attendanceData.filter(a => a.date === '25/03/2026').map(a => `${a.class}: ${a.absent}`).join(', ')}`,
+  ].join('\n');
 }
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const CHAT_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
 
 export default function AIAssistant() {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '0', role: 'ai', text: 'Assalam o Alaikum! 👋 I\'m your PakEducate AI Assistant. How can I help you manage your school today?' },
-  ]);
+  const [whatsappMode, setWhatsappMode] = useState(false);
   const [input, setInput] = useState('');
-  const [thinking, setThinking] = useState(false);
+  const [streaming, setStreaming] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '0',
+      role: 'assistant',
+      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Aap mujh se Urdu, Roman Urdu, ya English mein sawal kar sakte hain.\n\nBolein, aaj kya help chahiye?",
+    },
+  ]);
   const endRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const pageInfo = useMemo(() => PAGE_LABELS[location.pathname] || { label: 'School', chips: ['Aaj ka summary', 'Defaulters', 'At-risk students', 'Generate report'] }, [location.pathname]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streaming]);
 
-  const send = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', text };
-    setMessages(prev => [...prev, userMsg]);
+  const send = async (text: string) => {
+    if (!text.trim() || streaming) return;
     setInput('');
-    setThinking(true);
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setStreaming(true);
 
-    setTimeout(() => {
-      const response = getAIResponse(text);
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'ai', text: response.text, data: response.data }]);
-      setThinking(false);
-    }, 800 + Math.random() * 700);
+    let assistantSoFar = '';
+    const assistantId = (Date.now() + 1).toString();
+    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          mode: whatsappMode ? 'whatsapp' : 'normal',
+          page: pageInfo.label,
+          schoolContext: buildSchoolContext(),
+        }),
+      });
+
+      if (resp.status === 429) {
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Bohat ziada requests hain. Thori der baad try karein.' } : m));
+        setStreaming(false);
+        return;
+      }
+      if (resp.status === 402) {
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ AI credits khatam ho gaye. Workspace settings → Usage mein top-up karein.' } : m));
+        setStreaming(false);
+        return;
+      }
+      if (!resp.ok || !resp.body) throw new Error('Stream failed');
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let done = false;
+
+      while (!done) {
+        const { done: streamDone, value } = await reader.read();
+        if (streamDone) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') { done = true; break; }
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (delta) {
+              assistantSoFar += delta;
+              setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: assistantSoFar } : m));
+            }
+          } catch {
+            textBuffer = line + '\n' + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Connection error. Dobara try karein.' } : m));
+      }
+    } finally {
+      setStreaming(false);
+      abortRef.current = null;
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([messages[0]]);
   };
 
   return (
     <>
-      {/* Floating button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center animate-pulse-glow"
-          style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center group"
+          style={{
+            background: 'linear-gradient(135deg, #16a34a, #15803d)',
+            boxShadow: '0 0 0 0 rgba(22,163,74,0.6), 0 8px 32px rgba(22,163,74,0.4)',
+            animation: 'aiPulse 2s ease-out infinite',
+          }}
+          aria-label="Open AI Assistant"
         >
-          <Sparkles className="w-6 h-6 text-white" />
+          <Sparkles className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
         </button>
       )}
 
-      {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-4rem)] flex flex-col glass-card overflow-hidden" style={{ padding: 0, borderRadius: 20 }}>
+        <div
+          className="fixed top-0 right-0 z-50 h-full w-full sm:w-[420px] flex flex-col overflow-hidden animate-slide-in-right"
+          style={{
+            background: 'rgba(4,10,22,0.95)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            borderLeft: '1px solid rgba(255,255,255,0.07)',
+          }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4" style={{ background: 'linear-gradient(135deg, rgba(22,163,74,0.2), rgba(22,163,74,0.05))' }}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}>
-                <Bot className="w-5 h-5 text-white" />
+          <div
+            className="flex items-center justify-between px-5 py-4 shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(135deg, rgba(22,163,74,0.18), rgba(22,163,74,0.04))' }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative shrink-0">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', boxShadow: '0 4px 16px rgba(22,163,74,0.4)' }}>
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2" style={{ borderColor: '#040a16' }} />
               </div>
-              <div>
-                <h3 className="font-display font-bold text-sm" style={{ color: '#f1f5f9' }}>PakEducate AI</h3>
-                <p className="text-xs" style={{ color: 'rgba(241,245,249,0.5)' }}>School Operations Assistant</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm" style={{ color: '#f1f5f9' }}>PakEducate AI</h3>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold" style={{ background: 'rgba(245,158,11,0.18)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.4)' }}>
+                    GEMINI
+                  </span>
+                </div>
+                <p className="text-[11px] truncate" style={{ color: 'rgba(241,245,249,0.5)' }}>
+                  Pakistani schools ke liye trained · {pageInfo.label}
+                </p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-              <X className="w-5 h-5" style={{ color: 'rgba(241,245,249,0.6)' }} />
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={clearChat}
+                title="Clear chat"
+                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.5)' }} />
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                title="Minimize"
+                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <Minimize2 className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.5)' }} />
+              </button>
+              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5" style={{ color: 'rgba(241,245,249,0.7)' }} />
+              </button>
+            </div>
+          </div>
+
+          {/* WhatsApp toggle */}
+          <div className="px-5 py-2.5 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-3.5 h-3.5" style={{ color: whatsappMode ? '#22c55e' : 'rgba(241,245,249,0.4)' }} />
+              <span className="text-xs" style={{ color: 'rgba(241,245,249,0.7)' }}>WhatsApp Mode</span>
+            </div>
+            <button
+              onClick={() => setWhatsappMode(!whatsappMode)}
+              className="relative w-9 h-5 rounded-full transition-colors"
+              style={{ background: whatsappMode ? '#16a34a' : 'rgba(255,255,255,0.1)' }}
+              aria-pressed={whatsappMode}
+            >
+              <span
+                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
+                style={{ left: whatsappMode ? '18px' : '2px' }}
+              />
             </button>
           </div>
 
@@ -152,44 +254,44 @@ export default function AIAssistant() {
             {messages.map(m => (
               <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[85%] px-4 py-2.5 text-sm whitespace-pre-wrap ${
-                    m.role === 'user'
-                      ? 'rounded-2xl rounded-br-md'
-                      : 'rounded-2xl rounded-bl-md'
-                  }`}
+                  className={`max-w-[88%] px-4 py-2.5 text-sm ${m.role === 'user' ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-bl-md'}`}
                   style={
                     m.role === 'user'
                       ? { background: 'linear-gradient(135deg, #16a34a, #15803d)', color: 'white' }
                       : { background: 'rgba(255,255,255,0.06)', color: '#f1f5f9', border: '1px solid rgba(255,255,255,0.08)' }
                   }
                 >
-                  {m.text}
+                  {m.role === 'assistant' ? (
+                    <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0 [&_table]:text-xs [&_th]:text-left [&_th]:px-2 [&_th]:py-1 [&_td]:px-2 [&_td]:py-1 [&_table]:border-collapse [&_th]:border [&_th]:border-white/10 [&_td]:border [&_td]:border-white/10 [&_strong]:text-green-300">
+                      {m.content ? (
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                      ) : (
+                        <div className="flex gap-1.5 py-1">
+                          {[0, 1, 2].map(i => (
+                            <span key={i} className="w-2 h-2 rounded-full" style={{ background: '#22c55e', animation: `aiDot 1s ease-in-out ${i * 0.18}s infinite` }} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="whitespace-pre-wrap">{m.content}</span>
+                  )}
                 </div>
               </div>
             ))}
-            {thinking && (
-              <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl rounded-bl-md" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div className="flex gap-1.5">
-                    {[0, 1, 2].map(i => (
-                      <div key={i} className="w-2 h-2 rounded-full" style={{ background: '#22c55e', animation: `pulse 1s ease-in-out ${i * 0.2}s infinite` }} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
             <div ref={endRef} />
           </div>
 
-          {/* Quick chips */}
-          <div className="px-4 pb-2">
-            <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-              {quickChips.slice(0, 5).map(chip => (
+          {/* Quick chips (contextual) */}
+          <div className="px-4 pb-2 shrink-0">
+            <div className="flex gap-2 overflow-x-auto pb-1.5" style={{ scrollbarWidth: 'none' }}>
+              {pageInfo.chips.map(chip => (
                 <button
                   key={chip}
                   onClick={() => send(chip)}
-                  className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105"
-                  style={{ background: 'rgba(22,163,74,0.15)', color: '#22c55e', border: '1px solid rgba(22,163,74,0.3)' }}
+                  disabled={streaming}
+                  className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 disabled:opacity-50"
+                  style={{ background: 'rgba(22,163,74,0.12)', color: '#4ade80', border: '1px solid rgba(22,163,74,0.3)' }}
                 >
                   {chip}
                 </button>
@@ -198,33 +300,60 @@ export default function AIAssistant() {
           </div>
 
           {/* Input */}
-          <div className="px-4 pb-4">
-            <div className="flex gap-2 items-center rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <input
+          <div className="px-4 pb-4 shrink-0">
+            <div className="flex gap-2 items-end rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <button
+                title="Voice coming soon — Urdu mein bolein"
+                className="p-1.5 rounded-lg hover:bg-white/5 transition-colors shrink-0"
+              >
+                <Mic className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} />
+              </button>
+              <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && send(input)}
-                placeholder="Ask anything about your school..."
-                className="flex-1 bg-transparent text-sm outline-none"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send(input);
+                  }
+                }}
+                placeholder={whatsappMode ? 'WhatsApp message banaiye...' : 'Sawal poochein, ya command dein...'}
+                rows={1}
+                disabled={streaming}
+                className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 py-1"
                 style={{ color: '#f1f5f9' }}
               />
               <button
                 onClick={() => send(input)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}
+                disabled={streaming || !input.trim()}
+                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', boxShadow: '0 2px 12px rgba(22,163,74,0.4)' }}
               >
                 <Send className="w-4 h-4 text-white" />
               </button>
             </div>
+            <p className="text-[10px] mt-1.5 text-center" style={{ color: 'rgba(241,245,249,0.3)' }}>
+              AI may make mistakes. Verify before taking action.
+            </p>
           </div>
         </div>
       )}
 
       <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.2); }
+        @keyframes aiPulse {
+          0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.6), 0 8px 32px rgba(22,163,74,0.4); }
+          70% { box-shadow: 0 0 0 18px rgba(22,163,74,0), 0 8px 32px rgba(22,163,74,0.4); }
+          100% { box-shadow: 0 0 0 0 rgba(22,163,74,0), 0 8px 32px rgba(22,163,74,0.4); }
         }
+        @keyframes aiDot {
+          0%, 100% { opacity: 0.3; transform: scale(0.7); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+        @keyframes slide-in-right {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        .animate-slide-in-right { animation: slide-in-right 0.35s ease; }
       `}</style>
     </>
   );
