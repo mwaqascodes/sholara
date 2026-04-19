@@ -52,6 +52,8 @@ const CHAT_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
 
 export default function AIAssistant() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const store = useActionStore();
   const [open, setOpen] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState(false);
   const [input, setInput] = useState('');
@@ -60,13 +62,22 @@ export default function AIAssistant() {
     {
       id: '0',
       role: 'assistant',
-      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Aap mujh se Urdu, Roman Urdu, ya English mein sawal kar sakte hain.\n\nBolein, aaj kya help chahiye?",
+      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Ab main *real actions* bhi kar sakta hoon — student add karna, attendance mark karna, fees record karna, ya kisi page par le jana.\n\nBas bolein: *\"Class 5 mein Ali Hassan add karo\"* ya *\"Open fees page\"*.",
     },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const pageInfo = useMemo(() => PAGE_LABELS[location.pathname] || { label: 'School', chips: ['Aaj ka summary', 'Defaulters', 'At-risk students', 'Generate report'] }, [location.pathname]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.path) navigate(detail.path);
+    };
+    window.addEventListener('ai-navigate', handler);
+    return () => window.removeEventListener('ai-navigate', handler);
+  }, [navigate]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
