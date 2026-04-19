@@ -227,3 +227,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+
+function SchoolBadge() {
+  const { settings } = useSchool();
+  const { lang } = useI18n();
+  return (
+    <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <p className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>Current School</p>
+      <p className="text-sm font-semibold text-white/90 truncate" dir={lang === 'ur' ? 'rtl' : 'ltr'}>
+        {lang === 'ur' && settings.nameUrdu ? settings.nameUrdu : settings.name}
+      </p>
+      <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{settings.city} • {settings.board} Board</p>
+    </div>
+  );
+}
