@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { I18nProvider } from "@/lib/i18n-context";
+import { SchoolProvider } from "@/lib/school-context";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardLayout from "./components/DashboardLayout";
@@ -45,6 +46,7 @@ const App = () => (
     <ThemeProvider>
       <I18nProvider>
         <AuthProvider>
+          <SchoolProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -79,6 +81,7 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
+          </SchoolProvider>
         </AuthProvider>
       </I18nProvider>
     </ThemeProvider>
