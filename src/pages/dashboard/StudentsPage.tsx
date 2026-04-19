@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { students, allClasses } from '@/lib/demo-data';
+import { allClasses } from '@/lib/demo-data';
+import { useActionStore, actionStore } from '@/lib/action-store';
 import { Search, Plus, Download, MoreHorizontal, Eye, Edit, Trash2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function StudentsPage() {
+  const { students } = useActionStore();
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
