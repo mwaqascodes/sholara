@@ -359,6 +359,25 @@ export default function AIAssistant() {
         </div>
       )}
 
+      {/* Live action toasts (triggered by store) */}
+      <div className="fixed bottom-24 right-6 z-[60] flex flex-col gap-2 pointer-events-none">
+        {store.toasts.map(t => (
+          <div
+            key={t.id}
+            className="pointer-events-auto px-4 py-3 rounded-xl text-sm font-medium shadow-2xl flex items-center gap-2 animate-slide-in-right"
+            style={{
+              background: t.type === 'success' ? 'linear-gradient(135deg,#16a34a,#15803d)' : t.type === 'error' ? 'linear-gradient(135deg,#dc2626,#991b1b)' : 'linear-gradient(135deg,#0ea5e9,#0369a1)',
+              color: 'white',
+              minWidth: '240px',
+              maxWidth: '340px',
+            }}
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
+
       <style>{`
         @keyframes aiPulse {
           0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.6), 0 8px 32px rgba(22,163,74,0.4); }
