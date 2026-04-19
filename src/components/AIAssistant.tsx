@@ -284,7 +284,7 @@ export default function AIAssistant() {
                   {m.role === 'assistant' ? (
                     <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0 [&_table]:text-xs [&_th]:text-left [&_th]:px-2 [&_th]:py-1 [&_td]:px-2 [&_td]:py-1 [&_table]:border-collapse [&_th]:border [&_th]:border-white/10 [&_td]:border [&_td]:border-white/10 [&_strong]:text-green-300">
                       {m.content ? (
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <ReactMarkdown>{m.content.replace(/```action[\s\S]*?```/g, '⚙️ *Executing action...*')}</ReactMarkdown>
                       ) : (
                         <div className="flex gap-1.5 py-1">
                           {[0, 1, 2].map(i => (
