@@ -42,7 +42,22 @@ export default function StudentsPage() {
               <h3 className="font-display font-semibold text-lg">Add New Student</h3>
               <button onClick={() => setShowForm(false)} className="p-1 rounded hover:bg-muted"><X className="w-5 h-5" /></button>
             </div>
-            <form className="space-y-3" onSubmit={e => { e.preventDefault(); setShowForm(false); }}>
+            <form className="space-y-3" onSubmit={e => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              actionStore.addStudent({
+                name: String(fd.get('name') || 'Unnamed'),
+                nameUrdu: String(fd.get('nameUrdu') || ''),
+                fatherName: String(fd.get('fatherName') || ''),
+                dob: String(fd.get('dob') || ''),
+                class: String(fd.get('class') || 'Class 1'),
+                section: String(fd.get('section') || 'A'),
+                address: String(fd.get('address') || ''),
+                phone: String(fd.get('phone') || ''),
+                emergencyContact: String(fd.get('emergencyContact') || ''),
+              });
+              setShowForm(false);
+            }}>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm text-muted-foreground">Full Name (English)</label><input className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
                 <div><label className="text-sm text-muted-foreground">Full Name (Urdu)</label><input className="input-field mt-1 font-urdu" placeholder="علی حسن" dir="rtl" /></div>
