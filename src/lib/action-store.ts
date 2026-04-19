@@ -181,6 +181,9 @@ export function parseAndExecuteActions(content: string): { cleaned: string; resu
 
 export function useActionStore() {
   const [, setTick] = useState(0);
-  useEffect(() => actionStore.subscribe(() => setTick(t => t + 1)), []);
+  useEffect(() => {
+    const unsub = actionStore.subscribe(() => setTick(t => t + 1));
+    return () => { unsub(); };
+  }, []);
   return state;
 }
