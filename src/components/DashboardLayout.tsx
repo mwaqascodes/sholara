@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-context';
 import { useI18n } from '@/lib/i18n-context';
+import { useSchool } from '@/lib/school-context';
 import {
   GraduationCap, LayoutDashboard, Users, BookOpen, Calendar, BarChart3,
   DollarSign, Briefcase, Receipt, UserCheck, Clock, Bell, Settings,
