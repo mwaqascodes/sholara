@@ -122,9 +122,50 @@ export const actionStore = {
     return { ok: true, message: 'Attendance updated' };
   },
 
-  recordFeePayment(payload: { studentName: string; amount: number; method?: string }) {
-    pushToast('success', `Fee ₨${payload.amount.toLocaleString()} received from ${payload.studentName}`);
-    return { ok: true, message: `Recorded ₨${payload.amount} for ${payload.studentName}` };
+  recordFeePayment(payload: { studentName: string; amount: number; method?: string; class?: string }): { ok: boolean; message: string } {
+    const idx = state.fees.findIndex(f => f.studentName.toLowerCase() === payload.studentName.toLowerCase() && f.status !== 'paid');
+    let updated: FeeRecord[];
+    if (idx >= 0) {
+      const f = state.fees[idx];
+      const newPaid = Math.min(f.amount, f.paid + payload.amount);
+      const newStatus: FeeRecord['status'] = newPaid >= f.amount ? 'paid' : 'pending';
+      updated = [...state.fees];
+      updated[idx] = { ...f, paid: newPaid, status: newStatus, paymentMethod: payload.method || f.paymentMethod || 'Cash' };
+    } else {
+      const stu = state.students.find(s => s.name.toLowerCase() === payload.studentName.toLowerCase());
+      const newRec: FeeRecord = {
+        id: `f${Date.now()}`,
+        studentName: payload.studentName,
+        class: payload.class || stu?.class || 'Class 1',
+        amount: payload.amount,
+        paid: payload.amount,
+        status: 'paid',
+        dueDate: new Date().toLocaleDateString('en-GB'),
+        paymentMethod: payload.method || 'Cash',
+      };
+      updated = [newRec, ...state.fees];
+    }
+    state = { ...state, fees: updated };
+    persist(); emit();
+    pushToast('success', `Fee PKR ${payload.amount.toLocaleString()} received from ${payload.studentName}`);
+    return { ok: true, message: `Recorded PKR ${payload.amount} for ${payload.studentName}` };
+  },
+
+  addFeeRecord(input: Partial<FeeRecord> & { studentName: string; amount: number }): { ok: boolean; message: string } {
+    const rec: FeeRecord = {
+      id: `f${Date.now()}`,
+      studentName: input.studentName,
+      class: input.class || 'Class 1',
+      amount: input.amount,
+      paid: input.paid ?? 0,
+      status: input.status || 'pending',
+      dueDate: input.dueDate || new Date().toLocaleDateString('en-GB'),
+      paymentMethod: input.paymentMethod,
+    };
+    state = { ...state, fees: [rec, ...state.fees] };
+    persist(); emit();
+    pushToast('success', `Fee record added for ${rec.studentName}`);
+    return { ok: true, message: `Added fee for ${rec.studentName}` };
   },
 
   navigate(path: string) {
@@ -133,7 +174,7 @@ export const actionStore = {
   },
 
   resetData() {
-    state = { students: [...seedStudents], teachers: [...seedTeachers], toasts: state.toasts };
+    state = { students: [...seedStudents], teachers: [...seedTeachers], fees: [...seedFees], toasts: state.toasts };
     persist(); emit();
     pushToast('info', 'Demo data reset');
     return { ok: true, message: 'Data reset' };
