@@ -1,13 +1,14 @@
 // Lightweight client-side action store the AI Assistant can dispatch into.
 // Pages subscribe to add new students/teachers/fees etc. without page reload.
 import { useEffect, useState } from 'react';
-import { students as seedStudents, teachers as seedTeachers, type Student, type Teacher } from './demo-data';
+import { students as seedStudents, teachers as seedTeachers, feeRecords as seedFees, type Student, type Teacher, type FeeRecord } from './demo-data';
 
 type Listener = () => void;
 
 interface State {
   students: Student[];
   teachers: Teacher[];
+  fees: FeeRecord[];
   toasts: { id: string; type: 'success' | 'error' | 'info'; message: string }[];
 }
 
