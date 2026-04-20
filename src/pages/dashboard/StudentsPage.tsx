@@ -36,18 +36,18 @@ export default function StudentsPage() {
 
       {/* Add Student Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card-white max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="modal-panel" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-semibold text-lg">Add New Student</h3>
-              <button onClick={() => setShowForm(false)} className="p-1 rounded hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowForm(false)} className="p-1 rounded hover:bg-white/10"><X className="w-5 h-5" /></button>
             </div>
             <form className="space-y-3" onSubmit={e => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);
               actionStore.addStudent({
                 name: String(fd.get('name') || 'Unnamed'),
-                nameUrdu: String(fd.get('nameUrdu') || ''),
+                nameUrdu: '',
                 fatherName: String(fd.get('fatherName') || ''),
                 dob: String(fd.get('dob') || ''),
                 class: String(fd.get('class') || 'Class 1'),
@@ -59,26 +59,26 @@ export default function StudentsPage() {
               setShowForm(false);
             }}>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Full Name (English)</label><input name="name" required className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
-                <div><label className="text-sm text-muted-foreground">Full Name (Urdu)</label><input name="nameUrdu" className="input-field mt-1 font-urdu" placeholder="علی حسن" dir="rtl" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Full Name</label><input name="name" required className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Father's Name</label><input name="fatherName" className="input-field mt-1" placeholder="e.g. Muhammad Hassan" /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Father's Name</label><input name="fatherName" className="input-field mt-1" placeholder="e.g. Muhammad Hassan" /></div>
-                <div><label className="text-sm text-muted-foreground">Date of Birth</label><input name="dob" type="date" className="input-field mt-1" /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Date of Birth</label><input name="dob" type="date" className="input-field mt-1" /></div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Class</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-white/60">Class</label>
                   <select name="class" className="input-field mt-1">{allClasses.map(c => <option key={c}>{c}</option>)}</select>
                 </div>
-                <div><label className="text-sm text-muted-foreground">Section</label><input name="section" className="input-field mt-1" placeholder="A" /></div>
               </div>
-              <div><label className="text-sm text-muted-foreground">Address</label><input name="address" className="input-field mt-1" placeholder="House #, Street, City" /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm text-muted-foreground">Phone Number</label><input name="phone" className="input-field mt-1" placeholder="0300-1234567" /></div>
-                <div><label className="text-sm text-muted-foreground">Emergency Contact</label><input name="emergencyContact" className="input-field mt-1" placeholder="0321-9876543" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Section</label><input name="section" className="input-field mt-1" placeholder="A" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Phone Number</label><input name="phone" className="input-field mt-1" placeholder="0300-1234567" /></div>
               </div>
-              <button type="submit" className="btn-primary w-full mt-2">Save Student</button>
+              <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Address</label><input name="address" className="input-field mt-1" placeholder="House #, Street, City" /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Emergency Contact</label><input name="emergencyContact" className="input-field mt-1" placeholder="0321-9876543" /></div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-outline flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Save Student</button>
+              </div>
             </form>
           </motion.div>
         </div>
@@ -86,28 +86,27 @@ export default function StudentsPage() {
 
       {/* Student Profile Modal */}
       {selectedStudent && (
-        <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedStudent(null)}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card-white max-w-lg w-full" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => setSelectedStudent(null)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="modal-panel" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-semibold text-lg">Student Profile</h3>
-              <button onClick={() => setSelectedStudent(null)} className="p-1 rounded hover:bg-muted"><X className="w-5 h-5" /></button>
+              <button onClick={() => setSelectedStudent(null)} className="p-1 rounded hover:bg-white/10"><X className="w-5 h-5" /></button>
             </div>
             <div className="text-center mb-4">
               <span className="text-5xl">{selectedStudent.avatar}</span>
               <h4 className="font-display text-xl font-bold mt-2">{selectedStudent.name}</h4>
-              <p className="font-urdu text-lg text-muted-foreground">{selectedStudent.nameUrdu}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-muted-foreground">Father:</span> <span className="font-medium">{selectedStudent.fatherName}</span></div>
-              <div><span className="text-muted-foreground">Class:</span> <span className="font-medium">{selectedStudent.class} ({selectedStudent.section})</span></div>
-              <div><span className="text-muted-foreground">Roll No:</span> <span className="font-medium">{selectedStudent.rollNo}</span></div>
-              <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{selectedStudent.phone}</span></div>
-              <div><span className="text-muted-foreground">DOB:</span> <span className="font-medium">{selectedStudent.dob}</span></div>
-              <div><span className="text-muted-foreground">Attendance:</span> <span className="font-medium">{selectedStudent.attendance}%</span></div>
-              <div><span className="text-muted-foreground">GPA:</span> <span className="font-medium">{selectedStudent.gpa}</span></div>
-              <div><span className="text-muted-foreground">Status:</span> <span className={`badge ${selectedStudent.status === 'active' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>{selectedStudent.status}</span></div>
+              <div><span className="text-white/50">Father:</span> <span className="font-medium">{selectedStudent.fatherName}</span></div>
+              <div><span className="text-white/50">Class:</span> <span className="font-medium">{selectedStudent.class} ({selectedStudent.section})</span></div>
+              <div><span className="text-white/50">Roll No:</span> <span className="font-medium">{selectedStudent.rollNo}</span></div>
+              <div><span className="text-white/50">Phone:</span> <span className="font-medium">{selectedStudent.phone}</span></div>
+              <div><span className="text-white/50">DOB:</span> <span className="font-medium">{selectedStudent.dob}</span></div>
+              <div><span className="text-white/50">Attendance:</span> <span className="font-medium">{selectedStudent.attendance}%</span></div>
+              <div><span className="text-white/50">GPA:</span> <span className="font-medium">{selectedStudent.gpa}</span></div>
+              <div><span className="text-white/50">Status:</span> <span className={`badge ${selectedStudent.status === 'active' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>{selectedStudent.status}</span></div>
             </div>
-            <div className="mt-3 text-sm"><span className="text-muted-foreground">Address:</span> <span>{selectedStudent.address}</span></div>
+            <div className="mt-3 text-sm"><span className="text-white/50">Address:</span> <span>{selectedStudent.address}</span></div>
           </motion.div>
         </div>
       )}
