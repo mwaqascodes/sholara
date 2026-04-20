@@ -64,7 +64,7 @@ export default function ResultCardPage() {
   }, [form.studentName, form.rollNo]);
 
   const shareWhatsApp = () => {
-    const msg = encodeURIComponent(`Assalam o Alaikum! ${form.studentName} ka ${form.examType} result ready hai. Please contact school to collect your result card. - ${form.schoolName}`);
+    const msg = encodeURIComponent(`Hello! ${form.studentName}'s ${form.examType} result is ready. Please contact the school to collect the result card. — ${schoolName}`);
     const phone = form.phone.replace(/[^0-9]/g, '');
     window.open(`https://wa.me/92${phone}?text=${msg}`, '_blank');
   };
