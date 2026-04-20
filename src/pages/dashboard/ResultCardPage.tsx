@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Plus, Trash2, Download, Printer, MessageCircle } from 'lucide-react';
 import { getGrade } from '@/lib/demo-data';
+import { useSchool } from '@/lib/school-context';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -19,10 +20,13 @@ interface SubjectRow {
 
 export default function ResultCardPage() {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { settings } = useSchool();
+  const [schoolNameOverride, setSchoolNameOverride] = useState<string | null>(null);
+  const schoolName = schoolNameOverride ?? settings.name;
   const [form, setForm] = useState({
     studentName: '', fatherName: '', rollNo: '', phone: '',
     className: 'Class 5', examType: 'Mid-Term',
-    schoolName: 'Al-Huda Public School, Lahore', academicYear: '2025-2026',
+    academicYear: settings.academicYear || '2025-2026',
   });
 
   const [subjects, setSubjects] = useState<SubjectRow[]>(
