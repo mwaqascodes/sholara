@@ -12,13 +12,13 @@ interface Message {
 }
 
 const PAGE_LABELS: Record<string, { label: string; chips: string[] }> = {
-  '/dashboard': { label: 'Dashboard', chips: ['Aaj ka summary', 'At-risk students', 'Top performers', 'Generate monthly report'] },
-  '/dashboard/students': { label: 'Students', chips: ['Add student', 'Incomplete profiles', 'Search by class', 'WhatsApp absent parents'] },
+  '/dashboard': { label: 'Dashboard', chips: ["Today's summary", 'At-risk students', 'Top performers', 'Generate monthly report'] },
+  '/dashboard/students': { label: 'Students', chips: ['Add student', 'Incomplete profiles', 'Search by class', 'Message absent parents'] },
   '/dashboard/teachers': { label: 'Teachers', chips: ['List teachers', 'Total payroll', 'Add teacher'] },
   '/dashboard/attendance': { label: 'Attendance', chips: ['Today absent', 'Below 75%', '3-day absentees', 'Mark Class 6 present'] },
   '/dashboard/results': { label: 'Results', chips: ['Class topper', 'Pass/fail ratio', 'Failed subjects', 'Predict at-risk'] },
-  '/dashboard/fees': { label: 'Fees', chips: ['Defaulters', 'WhatsApp reminder', 'This month collection', 'Forecast'] },
-  '/dashboard/payroll': { label: 'Payroll', chips: ['Process October', 'Total expense', 'Bonus calc'] },
+  '/dashboard/fees': { label: 'Fees', chips: ['Defaulters', 'Send reminder', 'This month collection', 'Forecast'] },
+  '/dashboard/payroll': { label: 'Payroll', chips: ['Process this month', 'Total expense', 'Bonus calculator'] },
   '/dashboard/result-card': { label: 'Result Card', chips: ['Generate for top 5', 'Class 10 cards', 'Print all'] },
 };
 
@@ -62,13 +62,13 @@ export default function AIAssistant() {
     {
       id: '0',
       role: 'assistant',
-      content: "**Assalam o Alaikum!** 👋\n\nMain aapka **PakEducate AI** hoon. Ab main *real actions* bhi kar sakta hoon — student add karna, attendance mark karna, fees record karna, ya kisi page par le jana.\n\nBas bolein: *\"Class 5 mein Ali Hassan add karo\"* ya *\"Open fees page\"*.",
+      content: "**Hello! 👋 I'm PakEducate AI.**\n\nI can run *real actions* for you — add students, mark attendance, record fees, or open any page.\n\nTry: *\"Add Ali Hassan to Class 5\"* or *\"Open the fees page\"*.",
     },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const pageInfo = useMemo(() => PAGE_LABELS[location.pathname] || { label: 'School', chips: ['Aaj ka summary', 'Defaulters', 'At-risk students', 'Generate report'] }, [location.pathname]);
+  const pageInfo = useMemo(() => PAGE_LABELS[location.pathname] || { label: 'School', chips: ["Today's summary", 'Defaulters', 'At-risk students', 'Generate report'] }, [location.pathname]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -115,12 +115,12 @@ export default function AIAssistant() {
       });
 
       if (resp.status === 429) {
-        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Bohat ziada requests hain. Thori der baad try karein.' } : m));
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Too many requests. Please try again in a moment.' } : m));
         setStreaming(false);
         return;
       }
       if (resp.status === 402) {
-        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ AI credits khatam ho gaye. Workspace settings → Usage mein top-up karein.' } : m));
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ AI credits exhausted. Top up in workspace settings.' } : m));
         setStreaming(false);
         return;
       }
@@ -166,7 +166,7 @@ export default function AIAssistant() {
       setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: finalContent } : m));
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Connection error. Dobara try karein.' } : m));
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: '⚠️ Connection error. Please try again.' } : m));
       }
     } finally {
       setStreaming(false);
@@ -225,7 +225,7 @@ export default function AIAssistant() {
                   </span>
                 </div>
                 <p className="text-[11px] truncate" style={{ color: 'rgba(241,245,249,0.5)' }}>
-                  Pakistani schools ke liye trained · {pageInfo.label}
+                  Trained for Pakistani schools · {pageInfo.label}
                 </p>
               </div>
             </div>
@@ -286,10 +286,11 @@ export default function AIAssistant() {
                       {m.content ? (
                         <ReactMarkdown>{m.content.replace(/```action[\s\S]*?```/g, '⚙️ *Executing action...*')}</ReactMarkdown>
                       ) : (
-                        <div className="flex gap-1.5 py-1">
+                        <div className="flex gap-1.5 py-1 items-center">
                           {[0, 1, 2].map(i => (
                             <span key={i} className="w-2 h-2 rounded-full" style={{ background: '#22c55e', animation: `aiDot 1s ease-in-out ${i * 0.18}s infinite` }} />
                           ))}
+                          <span className="text-[11px] ml-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Thinking…</span>
                         </div>
                       )}
                     </div>
@@ -323,7 +324,7 @@ export default function AIAssistant() {
           <div className="px-4 pb-4 shrink-0">
             <div className="flex gap-2 items-end rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <button
-                title="Voice coming soon — Urdu mein bolein"
+                title="Voice input (coming soon)"
                 className="p-1.5 rounded-lg hover:bg-white/5 transition-colors shrink-0"
               >
                 <Mic className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} />
@@ -337,7 +338,7 @@ export default function AIAssistant() {
                     send(input);
                   }
                 }}
-                placeholder={whatsappMode ? 'WhatsApp message banaiye...' : 'Sawal poochein, ya command dein...'}
+                placeholder={whatsappMode ? 'Compose a WhatsApp message…' : 'Ask anything or give a command…'}
                 rows={1}
                 disabled={streaming}
                 className="flex-1 bg-transparent text-sm outline-none resize-none max-h-24 py-1"

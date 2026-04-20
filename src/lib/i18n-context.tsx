@@ -79,19 +79,18 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>('en');
-  const isRTL = lang === 'ur';
+  // English-only mode — Urdu support disabled per product decision.
+  const lang: Lang = 'en';
+  const isRTL = false;
+  const setLang = (_l: Lang) => {};
 
   useEffect(() => {
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    if (isRTL) {
-      document.documentElement.classList.add('rtl');
-    } else {
-      document.documentElement.classList.remove('rtl');
-    }
-  }, [isRTL]);
+    document.documentElement.dir = 'ltr';
+    document.documentElement.classList.remove('rtl');
+    document.documentElement.lang = 'en';
+  }, []);
 
-  const t = (key: string): string => translations[key]?.[lang] || key;
+  const t = (key: string): string => translations[key]?.en || key;
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t, isRTL }}>
