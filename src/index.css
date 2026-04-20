@@ -362,6 +362,39 @@
     @apply py-3 px-3 text-sm;
     color: #f1f5f9;
   }
+
+  /* ─── SOLID Modal panels (NO glass — must be readable) ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-panel {
+    background: #0f1e35;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1001;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+    color: #f1f5f9;
+  }
+  .light .modal-panel {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+  }
 }
 
 /* ─── Background Orbs ─── */
