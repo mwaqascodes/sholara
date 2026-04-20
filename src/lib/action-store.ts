@@ -22,11 +22,12 @@ function load(): State {
       return {
         students: parsed.students ?? [...seedStudents],
         teachers: parsed.teachers ?? [...seedTeachers],
+        fees: parsed.fees ?? [...seedFees],
         toasts: [],
       };
     }
   } catch {}
-  return { students: [...seedStudents], teachers: [...seedTeachers], toasts: [] };
+  return { students: [...seedStudents], teachers: [...seedTeachers], fees: [...seedFees], toasts: [] };
 }
 
 let state: State = load();
@@ -34,7 +35,7 @@ const listeners = new Set<Listener>();
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ students: state.students, teachers: state.teachers }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ students: state.students, teachers: state.teachers, fees: state.fees }));
   } catch {}
 }
 
