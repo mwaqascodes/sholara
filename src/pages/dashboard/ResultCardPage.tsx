@@ -109,6 +109,18 @@ export default function ResultCardPage() {
                 {examTypes.map(e => <option key={e} value={e}>{e}</option>)}
               </select>
             </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium mb-1 block" style={{ color: 'rgba(241,245,249,0.6)' }}>School Name (shown on certificate)</label>
+              <input
+                className="glass-input"
+                placeholder="School name"
+                value={schoolName}
+                onChange={e => setSchoolNameOverride(e.target.value)}
+              />
+              <p className="text-[10px] mt-1" style={{ color: 'rgba(241,245,249,0.4)' }}>
+                Default comes from school settings. Edit here to override for this card only.
+              </p>
+            </div>
           </div>
 
           <h3 className="font-display font-semibold text-lg pt-2" style={{ color: '#f1f5f9' }}>Subject Marks</h3>
