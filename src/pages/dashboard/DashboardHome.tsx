@@ -49,11 +49,11 @@ export default function DashboardHome() {
   const healthScore = Math.round((87 + (collectedFees / totalFees) * 100 + 92) / 3);
 
   // Student dashboard
-  if (user?.role === 'student') {
+  if (userRole === 'student') {
     return (
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>{t('dash.welcome')}, <span style={{ color: '#22c55e' }}>{user.name}</span></h2>
+          <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>{t('dash.welcome')}, <span style={{ color: '#22c55e' }}>{userName}</span></h2>
           <p className="text-sm mt-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Student Dashboard</p>
         </motion.div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -104,11 +104,11 @@ export default function DashboardHome() {
   }
 
   // Teacher dashboard
-  if (user?.role === 'teacher') {
+  if (userRole === 'teacher') {
     return (
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>{t('dash.welcome')}, <span style={{ color: '#22c55e' }}>{user.name}</span></h2>
+          <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>{t('dash.welcome')}, <span style={{ color: '#22c55e' }}>{userName}</span></h2>
           <p className="text-sm mt-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Teacher Dashboard</p>
         </motion.div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -155,7 +155,7 @@ export default function DashboardHome() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>
-              Good morning, {profile?.full_name || user?.email?.split('@')[0] || 'User'}! 👋
+              Good morning, {userName}! 👋
             </h2>
             <p className="text-sm mt-1" style={{ color: 'rgba(241,245,249,0.5)' }}>
               Today is {new Date().toLocaleDateString('en', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Here's your school overview.
