@@ -15,7 +15,9 @@ const fadeUp = {
 const COLORS = ['#22c55e', '#ef4444', '#f59e0b'];
 
 export default function DashboardHome() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const userRole = profile?.role || 'admin';
+  const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const { t } = useI18n();
   const navigate = useNavigate();
 
