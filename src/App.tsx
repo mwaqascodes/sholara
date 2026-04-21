@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +7,12 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { I18nProvider } from "@/lib/i18n-context";
 import { SchoolProvider } from "@/lib/school-context";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import StudentsPage from "./pages/dashboard/StudentsPage";
@@ -37,8 +41,10 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const DashboardRoute = ({ children }: { children: React.ReactNode }) => (
-  <DashboardLayout>{children}</DashboardLayout>
+const Protected = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <DashboardLayout>{children}</DashboardLayout>
+  </ProtectedRoute>
 );
 
 const App = () => (
@@ -54,29 +60,32 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/dashboard" element={<DashboardRoute><DashboardHome /></DashboardRoute>} />
-                <Route path="/dashboard/students" element={<DashboardRoute><StudentsPage /></DashboardRoute>} />
-                <Route path="/dashboard/teachers" element={<DashboardRoute><TeachersPage /></DashboardRoute>} />
-                <Route path="/dashboard/classes" element={<DashboardRoute><ClassesPage /></DashboardRoute>} />
-                <Route path="/dashboard/attendance" element={<DashboardRoute><AttendancePage /></DashboardRoute>} />
-                <Route path="/dashboard/results" element={<DashboardRoute><ResultsPage /></DashboardRoute>} />
-                <Route path="/dashboard/fees" element={<DashboardRoute><FeesPage /></DashboardRoute>} />
-                <Route path="/dashboard/schedule" element={<DashboardRoute><SchedulePage /></DashboardRoute>} />
-                <Route path="/dashboard/leave" element={<DashboardRoute><LeavePage /></DashboardRoute>} />
-                <Route path="/dashboard/payroll" element={<DashboardRoute><PayrollPage /></DashboardRoute>} />
-                <Route path="/dashboard/expenses" element={<DashboardRoute><ExpensesPage /></DashboardRoute>} />
-                <Route path="/dashboard/notifications" element={<DashboardRoute><NotificationsPage /></DashboardRoute>} />
-                <Route path="/dashboard/announcements" element={<DashboardRoute><AnnouncementsPage /></DashboardRoute>} />
-                <Route path="/dashboard/promotion" element={<DashboardRoute><PromotionPage /></DashboardRoute>} />
-                <Route path="/dashboard/certificates" element={<DashboardRoute><CertificatesPage /></DashboardRoute>} />
-                <Route path="/dashboard/analytics" element={<DashboardRoute><AnalyticsPage /></DashboardRoute>} />
-                <Route path="/dashboard/calendar" element={<DashboardRoute><CalendarPage /></DashboardRoute>} />
-                <Route path="/dashboard/homework" element={<DashboardRoute><HomeworkPage /></DashboardRoute>} />
-                <Route path="/dashboard/merit" element={<DashboardRoute><MeritPage /></DashboardRoute>} />
-                <Route path="/dashboard/inventory" element={<DashboardRoute><InventoryPage /></DashboardRoute>} />
-                <Route path="/dashboard/admissions" element={<DashboardRoute><AdmissionsPage /></DashboardRoute>} />
-                <Route path="/dashboard/result-card" element={<DashboardRoute><ResultCardPage /></DashboardRoute>} />
-                <Route path="/dashboard/settings" element={<DashboardRoute><SettingsPage /></DashboardRoute>} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/dashboard" element={<Protected><DashboardHome /></Protected>} />
+                <Route path="/dashboard/students" element={<Protected><StudentsPage /></Protected>} />
+                <Route path="/dashboard/teachers" element={<Protected><TeachersPage /></Protected>} />
+                <Route path="/dashboard/classes" element={<Protected><ClassesPage /></Protected>} />
+                <Route path="/dashboard/attendance" element={<Protected><AttendancePage /></Protected>} />
+                <Route path="/dashboard/results" element={<Protected><ResultsPage /></Protected>} />
+                <Route path="/dashboard/fees" element={<Protected><FeesPage /></Protected>} />
+                <Route path="/dashboard/schedule" element={<Protected><SchedulePage /></Protected>} />
+                <Route path="/dashboard/leave" element={<Protected><LeavePage /></Protected>} />
+                <Route path="/dashboard/payroll" element={<Protected><PayrollPage /></Protected>} />
+                <Route path="/dashboard/expenses" element={<Protected><ExpensesPage /></Protected>} />
+                <Route path="/dashboard/notifications" element={<Protected><NotificationsPage /></Protected>} />
+                <Route path="/dashboard/announcements" element={<Protected><AnnouncementsPage /></Protected>} />
+                <Route path="/dashboard/promotion" element={<Protected><PromotionPage /></Protected>} />
+                <Route path="/dashboard/certificates" element={<Protected><CertificatesPage /></Protected>} />
+                <Route path="/dashboard/analytics" element={<Protected><AnalyticsPage /></Protected>} />
+                <Route path="/dashboard/calendar" element={<Protected><CalendarPage /></Protected>} />
+                <Route path="/dashboard/homework" element={<Protected><HomeworkPage /></Protected>} />
+                <Route path="/dashboard/merit" element={<Protected><MeritPage /></Protected>} />
+                <Route path="/dashboard/inventory" element={<Protected><InventoryPage /></Protected>} />
+                <Route path="/dashboard/admissions" element={<Protected><AdmissionsPage /></Protected>} />
+                <Route path="/dashboard/result-card" element={<Protected><ResultCardPage /></Protected>} />
+                <Route path="/dashboard/settings" element={<Protected><SettingsPage /></Protected>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

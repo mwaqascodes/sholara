@@ -153,7 +153,7 @@ export default function DashboardHome() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>
-              Good morning, {user?.name}! 👋
+              Good morning, {profile?.full_name || user?.email?.split('@')[0] || 'User'}! 👋
             </h2>
             <p className="text-sm mt-1" style={{ color: 'rgba(241,245,249,0.5)' }}>
               Today is {new Date().toLocaleDateString('en', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}. Here's your school overview.
