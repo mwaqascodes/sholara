@@ -21,7 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const demoUsers: Record<UserRole, User> = {
-  admin: { id: '1', name: 'Ahmed Khan', email: 'admin@pakeducate.pk', role: 'admin', avatar: '👨‍💼', schoolId: 'sch1' },
+  admin: { id: '1', name: 'Ahmed Khan', email: 'admin@learnique.pk', role: 'admin', avatar: '👨‍💼', schoolId: 'sch1' },
   teacher: { id: '2', name: 'Fatima Noor', email: 'fatima@school.pk', role: 'teacher', avatar: '👩‍🏫', schoolId: 'sch1' },
   student: { id: '3', name: 'Ali Hassan', email: 'ali@school.pk', role: 'student', avatar: '👨‍🎓', schoolId: 'sch1' },
 };
