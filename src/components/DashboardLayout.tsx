@@ -7,7 +7,7 @@ import {
   GraduationCap, LayoutDashboard, Users, BookOpen, Calendar, BarChart3,
   DollarSign, Briefcase, Receipt, UserCheck, Clock, Bell, Settings,
   LogOut, Sun, Moon, Menu, X, Megaphone, ArrowUpCircle, FileText, Globe,
-  ChevronLeft, TrendingUp, Trophy, Package, UserPlus, ClipboardList, Sparkles
+  ChevronLeft, TrendingUp, Trophy, Package, UserPlus, ClipboardList, Sparkles, Search
 } from 'lucide-react';
 import { useState } from 'react';
 import BackgroundOrbs from './BackgroundOrbs';
@@ -15,13 +15,11 @@ import AIAssistant from './AIAssistant';
 
 interface NavGroup {
   title: string;
-  titleUr: string;
   items: NavItem[];
 }
 
 interface NavItem {
   label: string;
-  i18nKey: string;
   path: string;
   icon: React.ElementType;
   roles: string[];
@@ -29,55 +27,56 @@ interface NavItem {
 
 const navGroups: NavGroup[] = [
   {
-    title: 'OVERVIEW', titleUr: 'جائزہ',
+    title: 'OVERVIEW',
     items: [
-      { label: 'Dashboard', i18nKey: 'nav.dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Analytics', i18nKey: 'nav.analytics', path: '/dashboard/analytics', icon: TrendingUp, roles: ['admin'] },
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Analytics', path: '/dashboard/analytics', icon: TrendingUp, roles: ['admin'] },
     ],
   },
   {
-    title: 'ACADEMICS', titleUr: 'تعلیمی',
+    title: 'ACADEMICS',
     items: [
-      { label: 'Students', i18nKey: 'nav.students', path: '/dashboard/students', icon: Users, roles: ['admin', 'teacher'] },
-      { label: 'Teachers', i18nKey: 'nav.teachers', path: '/dashboard/teachers', icon: UserCheck, roles: ['admin'] },
-      { label: 'Attendance', i18nKey: 'nav.attendance', path: '/dashboard/attendance', icon: Calendar, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Exam Results', i18nKey: 'nav.results', path: '/dashboard/results', icon: BarChart3, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Homework', i18nKey: 'nav.homework', path: '/dashboard/homework', icon: BookOpen, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Students', path: '/dashboard/students', icon: Users, roles: ['admin', 'teacher'] },
+      { label: 'Teachers', path: '/dashboard/teachers', icon: UserCheck, roles: ['admin'] },
+      { label: 'Classes', path: '/dashboard/classes', icon: BookOpen, roles: ['admin'] },
+      { label: 'Attendance', path: '/dashboard/attendance', icon: Calendar, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Exam Results', path: '/dashboard/results', icon: BarChart3, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Homework', path: '/dashboard/homework', icon: BookOpen, roles: ['admin', 'teacher', 'student'] },
     ],
   },
   {
-    title: 'FINANCE', titleUr: 'مالیات',
+    title: 'FINANCE',
     items: [
-      { label: 'Fee Management', i18nKey: 'nav.fees', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'student'] },
-      { label: 'Payroll', i18nKey: 'nav.payroll', path: '/dashboard/payroll', icon: Briefcase, roles: ['admin'] },
-      { label: 'Expenses', i18nKey: 'nav.expenses', path: '/dashboard/expenses', icon: Receipt, roles: ['admin'] },
+      { label: 'Fee Management', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'student'] },
+      { label: 'Payroll', path: '/dashboard/payroll', icon: Briefcase, roles: ['admin'] },
+      { label: 'Expenses', path: '/dashboard/expenses', icon: Receipt, roles: ['admin'] },
     ],
   },
   {
-    title: 'SCHOOL OPS', titleUr: 'اسکول آپریشنز',
+    title: 'SCHOOL OPS',
     items: [
-      { label: 'Academic Calendar', i18nKey: 'nav.calendar', path: '/dashboard/calendar', icon: Calendar, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Timetable', i18nKey: 'nav.timetable', path: '/dashboard/schedule', icon: Clock, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Merit System', i18nKey: 'nav.merit', path: '/dashboard/merit', icon: Trophy, roles: ['admin', 'teacher'] },
-      { label: 'Inventory', i18nKey: 'nav.inventory', path: '/dashboard/inventory', icon: Package, roles: ['admin'] },
-      { label: 'Class Promotion', i18nKey: 'nav.promotion', path: '/dashboard/promotion', icon: ArrowUpCircle, roles: ['admin'] },
+      { label: 'Academic Calendar', path: '/dashboard/calendar', icon: Calendar, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Timetable', path: '/dashboard/schedule', icon: Clock, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Merit System', path: '/dashboard/merit', icon: Trophy, roles: ['admin', 'teacher'] },
+      { label: 'Inventory', path: '/dashboard/inventory', icon: Package, roles: ['admin'] },
+      { label: 'Class Promotion', path: '/dashboard/promotion', icon: ArrowUpCircle, roles: ['admin'] },
     ],
   },
   {
-    title: 'COMMUNICATION', titleUr: 'مواصلات',
+    title: 'COMMUNICATION',
     items: [
-      { label: 'Announcements', i18nKey: 'nav.announcements', path: '/dashboard/announcements', icon: Megaphone, roles: ['admin', 'teacher', 'student'] },
-      { label: 'Notifications', i18nKey: 'nav.notifications', path: '/dashboard/notifications', icon: Bell, roles: ['admin'] },
-      { label: 'Leave', i18nKey: 'nav.leave', path: '/dashboard/leave', icon: ClipboardList, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Announcements', path: '/dashboard/announcements', icon: Megaphone, roles: ['admin', 'teacher', 'student'] },
+      { label: 'Notifications', path: '/dashboard/notifications', icon: Bell, roles: ['admin'] },
+      { label: 'Leave Requests', path: '/dashboard/leave', icon: ClipboardList, roles: ['admin', 'teacher', 'student'] },
     ],
   },
   {
-    title: 'ADMIN', titleUr: 'انتظامی',
+    title: 'ADMIN',
     items: [
-      { label: 'Admissions', i18nKey: 'nav.admissions', path: '/dashboard/admissions', icon: UserPlus, roles: ['admin'] },
-      { label: 'Result Card', i18nKey: 'nav.resultCard', path: '/dashboard/result-card', icon: FileText, roles: ['admin', 'teacher'] },
-      { label: 'Certificates / SLC', i18nKey: 'nav.certificates', path: '/dashboard/certificates', icon: FileText, roles: ['admin'] },
-      { label: 'Settings', i18nKey: 'nav.settings', path: '/dashboard/settings', icon: Settings, roles: ['admin'] },
+      { label: 'Admissions', path: '/dashboard/admissions', icon: UserPlus, roles: ['admin'] },
+      { label: 'Result Card', path: '/dashboard/result-card', icon: FileText, roles: ['admin', 'teacher'] },
+      { label: 'Certificates', path: '/dashboard/certificates', icon: FileText, roles: ['admin'] },
+      { label: 'Settings', path: '/dashboard/settings', icon: Settings, roles: ['admin'] },
     ],
   },
 ];
@@ -98,6 +97,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = () => { logout(); navigate('/'); };
 
+  const currentPage = navGroups.flatMap(g => g.items).find(n => n.path === location.pathname)?.label || 'Dashboard';
+
   return (
     <div className="app-bg min-h-screen relative">
       <BackgroundOrbs />
@@ -108,15 +109,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside className={`fixed top-0 left-0 h-full z-50 glass-sidebar flex flex-col transition-all duration-300 ${
-        collapsed ? 'w-[72px]' : 'w-[260px]'
+        collapsed ? 'w-[74px]' : 'w-[268px]'
       } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center justify-between h-20 px-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <Link to="/" className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            {!collapsed && <span className="font-display text-lg font-bold text-white whitespace-nowrap">PakEducate</span>}
+            {!collapsed && (
+              <div className="flex items-baseline gap-0.5">
+                <span className="font-display text-lg font-bold text-white whitespace-nowrap">Learnique</span>
+                <span className="font-display text-lg font-bold whitespace-nowrap" style={{ color: '#86c94a' }}>-Vista</span>
+              </div>
+            )}
           </Link>
           <button className="lg:hidden text-white/70 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="w-5 h-5" />
@@ -130,15 +136,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {!collapsed && <SchoolBadge />}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
+        <nav className="flex-1 overflow-y-auto py-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
           {navGroups.map(group => {
             const visibleItems = group.items.filter(item => item.roles.includes(user.role));
             if (visibleItems.length === 0) return null;
             return (
               <div key={group.title} className="mb-1">
                 {!collapsed && (
-                  <p className="text-[10px] uppercase tracking-wider px-3 pt-3 pb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    {lang === 'ur' ? group.titleUr : group.title}
+                  <p className="text-[10px] uppercase tracking-[1.5px] font-bold px-5 pt-5 pb-2" style={{ color: 'rgba(255,255,255,0.24)' }}>
+                    {group.title}
                   </p>
                 )}
                 {visibleItems.map(item => {
@@ -149,10 +155,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       to={item.path}
                       onClick={() => setSidebarOpen(false)}
                       className={active ? 'nav-item-active' : 'nav-item'}
-                      title={collapsed ? t(item.i18nKey) : undefined}
+                      title={collapsed ? item.label : undefined}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
-                      {!collapsed && <span className="truncate">{t(item.i18nKey)}</span>}
+                      {!collapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -162,22 +168,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Bottom actions */}
-        <div className="p-2 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={() => setLang(lang === 'en' ? 'ur' : 'en')} className="nav-item w-full">
-            <Globe className="w-4 h-4 shrink-0" />
-            {!collapsed && t('common.language')}
-          </button>
+        <div className="p-3 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={toggle} className="nav-item w-full">
             {isDark ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
-            {!collapsed && (isDark ? t('common.lightMode') : t('common.darkMode'))}
+            {!collapsed && (isDark ? 'Light Mode' : 'Dark Mode')}
           </button>
           {!collapsed && (
             <div className="flex items-center gap-2 px-3 py-2 mt-1">
-              <span className="text-xl">{user.avatar}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white/90 truncate">{user.name}</p>
-                <p className="text-[10px] capitalize" style={{ color: 'rgba(255,255,255,0.4)' }}>{user.role}</p>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
+                {user.name.split(' ').map(n => n[0]).join('').slice(0,2)}
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium text-white/90 truncate">{user.name}</p>
+                <p className="text-[11px] capitalize" style={{ color: 'rgba(255,255,255,0.4)' }}>{user.role}</p>
+              </div>
+              <button onClick={() => navigate('/dashboard/settings')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Settings">
+                <Settings className="w-4 h-4 text-white/40" />
+              </button>
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors" title="Logout">
                 <LogOut className="w-4 h-4 text-red-400" />
               </button>
@@ -192,7 +199,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 min-h-screen flex flex-col relative z-10 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'}`}>
+      <div className={`transition-all duration-300 min-h-screen flex flex-col relative z-10 ${collapsed ? 'lg:ml-[74px]' : 'lg:ml-[268px]'}`}>
         {/* Top navbar */}
         <header className="h-16 glass-navbar flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-3">
@@ -200,16 +207,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="w-5 h-5 text-white/70" />
             </button>
             <h1 className="font-display font-semibold text-lg" style={{ color: '#f1f5f9' }}>
-              {navGroups.flatMap(g => g.items).find(n => n.path === location.pathname)?.label || 'Dashboard'}
+              {currentPage}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
-              <Bell className="w-5 h-5" style={{ color: 'rgba(241,245,249,0.6)' }} />
+          <div className="hidden md:flex items-center flex-1 max-w-sm mx-6">
+            <div className="relative w-full">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(241,245,249,0.3)' }} />
+              <input
+                placeholder="Search students, fees..."
+                className="w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#f1f5f9' }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="relative p-2 rounded-xl hover:bg-white/10 transition-colors" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <Bell className="w-4.5 h-4.5" style={{ color: 'rgba(241,245,249,0.6)' }} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span className="text-lg">{user.avatar}</span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
+                {user.name.split(' ').map(n => n[0]).join('').slice(0,2)}
+              </div>
               <div className="hidden sm:block">
                 <p className="text-xs font-medium" style={{ color: '#f1f5f9' }}>{user.name}</p>
                 <p className="text-[10px] capitalize" style={{ color: 'rgba(241,245,249,0.5)' }}>{user.role}</p>
@@ -230,14 +249,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 function SchoolBadge() {
   const { settings } = useSchool();
-  const { lang } = useI18n();
   return (
-    <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-      <p className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>Current School</p>
-      <p className="text-sm font-semibold text-white/90 truncate" dir={lang === 'ur' ? 'rtl' : 'ltr'}>
-        {lang === 'ur' && settings.nameUrdu ? settings.nameUrdu : settings.name}
-      </p>
-      <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{settings.city} • {settings.board} Board</p>
+    <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: 'rgba(255,255,255,0.25)' }}>Current School</p>
+      <p className="text-sm font-semibold text-white/90 truncate mt-0.5">{settings.name}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{settings.city} • {settings.board} Board</p>
+        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.4)', color: '#f59e0b' }}>DEMO</span>
+      </div>
     </div>
   );
 }
