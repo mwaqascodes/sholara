@@ -6,78 +6,41 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 98%;
+    --foreground: 224 71% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 160 84% 39%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 38 92% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 9% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 38 92% 95%;
+    --accent-foreground: 38 92% 30%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 160 84% 39%;
-    --radius: 0.5rem;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 38 92% 50%;
+    --radius: 0.75rem;
     --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 160 84% 39%;
-    --sidebar-muted: 215 16% 47%;
-  }
-
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 160 84% 39%;
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 100%;
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 160 84% 39%;
-    --sidebar-muted: 215 20% 65%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 224 71% 4%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 38 92% 30%;
+    --sidebar-accent: 38 92% 95%;
+    --sidebar-accent-foreground: 38 92% 30%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 38 92% 50%;
+    --sidebar-muted: 220 9% 46%;
   }
 }
 
@@ -89,14 +52,9 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
-  .rtl {
-    direction: rtl;
-    font-family: 'Noto Nastaliq Urdu', 'Inter', system-ui, sans-serif;
-  }
 }
 
 @layer components {
-  /* Modal panels — always solid */
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0, 0, 0, 0.50);
@@ -108,7 +66,7 @@
   .modal-panel {
     background: #ffffff;
     border: 1px solid hsl(var(--border));
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 2rem;
     width: 100%;
     max-width: 640px;
@@ -116,7 +74,7 @@
     overflow-y: auto;
     position: relative;
     z-index: 1001;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
     color: hsl(var(--foreground));
   }
   .modal-panel input,
@@ -146,13 +104,6 @@
     margin-bottom: 0.375rem;
   }
 
-  .dark .modal-panel {
-    background: hsl(222 47% 9%);
-    border-color: hsl(217 33% 17%);
-    color: hsl(210 40% 98%);
-  }
-
-  /* Status Badges */
   .badge-success {
     display: inline-flex; align-items: center; gap: 0.25rem;
     padding: 0.25rem 0.625rem; border-radius: 9999px;
@@ -188,19 +139,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes countUp {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
-}
-
 @keyframes shimmer {
   0% { background-position: -600px 0; }
   100% { background-position: 600px 0; }
 }
 
 @keyframes aiPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6), 0 8px 32px rgba(16,185,129,0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(16,185,129,0), 0 8px 32px rgba(16,185,129,0.3); }
+  0%, 100% { box-shadow: 0 0 0 0 hsl(38 92% 50% / 0.5), 0 8px 24px hsl(38 92% 50% / 0.25); }
+  50% { box-shadow: 0 0 0 8px hsl(38 92% 50% / 0), 0 8px 24px hsl(38 92% 50% / 0.25); }
 }
 
 @keyframes aiDot {
@@ -219,7 +165,6 @@
   }
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
