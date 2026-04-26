@@ -399,35 +399,35 @@ export default function LandingPage() {
               {/* Dashboard mockup */}
               <div className="flex h-[280px] md:h-[340px]">
                 {/* Sidebar */}
-                <div className="w-14 bg-white/[0.015] border-r border-white/5 flex flex-col items-center py-4 gap-3 flex-shrink-0">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                    <GraduationCap size={15} className="text-slate-900" />
+                <div className="w-10 sm:w-14 bg-white/[0.015] border-r border-white/5 flex flex-col items-center py-3 sm:py-4 gap-2 sm:gap-3 flex-shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                    <GraduationCap size={13} className="text-slate-900" />
                   </div>
                   {[BarChart3, Users, CreditCard, CalendarCheck].map((Icon, i) => (
-                    <div key={i} className={`w-7 h-7 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-amber-500/15' : 'bg-white/5'}`}>
-                      <Icon size={13} className={i === 0 ? 'text-amber-400' : 'text-white/30'} />
+                    <div key={i} className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-amber-500/15' : 'bg-white/5'}`}>
+                      <Icon size={12} className={i === 0 ? 'text-amber-400' : 'text-white/30'} />
                     </div>
                   ))}
                 </div>
 
                 {/* Main content */}
-                <div className="flex-1 p-5 overflow-hidden">
-                  <p className="text-xs font-black text-white/60 mb-4">Good Morning, Principal Ahmed 👋</p>
+                <div className="flex-1 min-w-0 p-3 sm:p-5 overflow-hidden">
+                  <p className="text-[11px] sm:text-xs font-black text-white/60 mb-3 sm:mb-4 truncate">Good Morning, Principal Ahmed 👋</p>
                   {/* Stats */}
-                  <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-3 mb-3 sm:mb-4">
                     {[
                       { val: '1,247', lbl: 'Students', c: 'text-amber-400' },
                       { val: '94%',   lbl: 'Present',  c: 'text-emerald-400' },
                       { val: '₨19.4L',lbl: 'Fees',     c: 'text-blue-400' },
                     ].map(s => (
-                      <div key={s.lbl} className="bg-white/[0.03] border border-white/5 rounded-xl p-3">
-                        <p className={`text-base font-black ${s.c}`}>{s.val}</p>
-                        <p className="text-[9px] text-white/30 mt-0.5">{s.lbl}</p>
+                      <div key={s.lbl} className="bg-white/[0.03] border border-white/5 rounded-lg sm:rounded-xl p-2 sm:p-3 min-w-0">
+                        <p className={`text-[11px] sm:text-base font-black ${s.c} truncate`}>{s.val}</p>
+                        <p className="text-[8px] sm:text-[9px] text-white/30 mt-0.5 truncate">{s.lbl}</p>
                       </div>
                     ))}
                   </div>
                   {/* Chart bars */}
-                  <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex items-end gap-2 h-[100px] md:h-[130px]">
+                  <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2 sm:p-3 flex items-end gap-1 sm:gap-2 h-[110px] sm:h-[100px] md:h-[130px]">
                     {[40, 65, 50, 80, 60, 90, 70, 55, 75, 85].map((h, i) => (
                       <div
                         key={i}
@@ -441,8 +441,8 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* AI panel */}
-                <div className="w-[160px] md:w-[200px] bg-[#0a1020] border-l border-amber-500/15 flex flex-col flex-shrink-0">
+                {/* AI panel — hidden on mobile to give main content room */}
+                <div className="hidden md:flex w-[160px] md:w-[200px] bg-[#0a1020] border-l border-amber-500/15 flex-col flex-shrink-0">
                   <div className="px-4 py-3 border-b border-white/5">
                     <div className="flex items-center gap-2">
                       <Sparkles size={12} className="text-amber-400" />

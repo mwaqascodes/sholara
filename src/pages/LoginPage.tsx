@@ -41,9 +41,11 @@ export default function LoginPage() {
       if (error) {
         setError(error.message)
         setLoading(false)
+        return
       }
+      navigate('/dashboard', { replace: true })
     } catch (err: any) {
-      setError("Failed to sign in. Please check your credentials.")
+      setError(err?.message || "Failed to sign in. Please check your credentials.")
       setLoading(false)
     }
   }
