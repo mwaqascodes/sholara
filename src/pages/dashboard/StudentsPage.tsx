@@ -1,0 +1,171 @@
+import { useState } from 'react';
+import { allClasses } from '@/lib/demo-data';
+import { useActionStore, actionStore } from '@/lib/action-store';
+import { Search, Plus, Download, MoreHorizontal, Eye, Edit, Trash2, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+export default function StudentsPage() {
+  const { students } = useActionStore();
+  const [search, setSearch] = useState('');
+  const [classFilter, setClassFilter] = useState('all');
+  const [showForm, setShowForm] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<typeof students[0] | null>(null);
+
+  const filtered = students.filter(s => {
+    if (search && !s.name.toLowerCase().includes(search.toLowerCase()) && !s.fatherName.toLowerCase().includes(search.toLowerCase())) return false;
+    if (classFilter !== 'all' && s.class !== classFilter) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Students</h2>
+          <p className="text-sm text-muted-foreground">{students.length} total students</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-outline flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Student
+          </button>
+        </div>
+      </div>
+
+      {/* Add Student Modal */}
+      {showForm && (
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="modal-panel" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold text-lg">Add New Student</h3>
+              <button onClick={() => setShowForm(false)} className="p-1 rounded hover:bg-white/10"><X className="w-5 h-5" /></button>
+            </div>
+            <form className="space-y-3" onSubmit={e => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              actionStore.addStudent({
+                name: String(fd.get('name') || 'Unnamed'),
+                nameUrdu: '',
+                fatherName: String(fd.get('fatherName') || ''),
+                dob: String(fd.get('dob') || ''),
+                class: String(fd.get('class') || 'Class 1'),
+                section: String(fd.get('section') || 'A'),
+                address: String(fd.get('address') || ''),
+                phone: String(fd.get('phone') || ''),
+                emergencyContact: String(fd.get('emergencyContact') || ''),
+              });
+              setShowForm(false);
+            }}>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Full Name</label><input name="name" required className="input-field mt-1" placeholder="e.g. Ali Hassan" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Father's Name</label><input name="fatherName" className="input-field mt-1" placeholder="e.g. Muhammad Hassan" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Date of Birth</label><input name="dob" type="date" className="input-field mt-1" /></div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-white/60">Class</label>
+                  <select name="class" className="input-field mt-1">{allClasses.map(c => <option key={c}>{c}</option>)}</select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Section</label><input name="section" className="input-field mt-1" placeholder="A" /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Phone Number</label><input name="phone" className="input-field mt-1" placeholder="0300-1234567" /></div>
+              </div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Address</label><input name="address" className="input-field mt-1" placeholder="House #, Street, City" /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider text-white/60">Emergency Contact</label><input name="emergencyContact" className="input-field mt-1" placeholder="0321-9876543" /></div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-outline flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Save Student</button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Student Profile Modal */}
+      {selectedStudent && (
+        <div className="modal-overlay" onClick={() => setSelectedStudent(null)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="modal-panel" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold text-lg">Student Profile</h3>
+              <button onClick={() => setSelectedStudent(null)} className="p-1 rounded hover:bg-white/10"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="text-center mb-4">
+              <span className="text-5xl">{selectedStudent.avatar}</span>
+              <h4 className="font-display text-xl font-bold mt-2">{selectedStudent.name}</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div><span className="text-white/50">Father:</span> <span className="font-medium">{selectedStudent.fatherName}</span></div>
+              <div><span className="text-white/50">Class:</span> <span className="font-medium">{selectedStudent.class} ({selectedStudent.section})</span></div>
+              <div><span className="text-white/50">Roll No:</span> <span className="font-medium">{selectedStudent.rollNo}</span></div>
+              <div><span className="text-white/50">Phone:</span> <span className="font-medium">{selectedStudent.phone}</span></div>
+              <div><span className="text-white/50">DOB:</span> <span className="font-medium">{selectedStudent.dob}</span></div>
+              <div><span className="text-white/50">Attendance:</span> <span className="font-medium">{selectedStudent.attendance}%</span></div>
+              <div><span className="text-white/50">GPA:</span> <span className="font-medium">{selectedStudent.gpa}</span></div>
+              <div><span className="text-white/50">Status:</span> <span className={`badge ${selectedStudent.status === 'active' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>{selectedStudent.status}</span></div>
+            </div>
+            <div className="mt-3 text-sm"><span className="text-white/50">Address:</span> <span>{selectedStudent.address}</span></div>
+          </motion.div>
+        </div>
+      )}
+
+      <div className="card-white">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input type="text" placeholder="Search students..." value={search} onChange={e => setSearch(e.target.value)} className="input-field pl-10" />
+          </div>
+          <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="input-field w-auto">
+            <option value="all">All Classes</option>
+            {allClasses.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="table-header">Photo</th>
+                <th className="table-header">Name</th>
+                <th className="table-header">Father Name</th>
+                <th className="table-header">Class</th>
+                <th className="table-header">Roll No</th>
+                <th className="table-header">Phone</th>
+                <th className="table-header">Attendance</th>
+                <th className="table-header">Status</th>
+                <th className="table-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s, i) => (
+                <motion.tr key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                  <td className="table-cell"><span className="text-xl">{s.avatar}</span></td>
+                  <td className="table-cell font-medium">{s.name}</td>
+                  <td className="table-cell text-muted-foreground">{s.fatherName}</td>
+                  <td className="table-cell">{s.class}</td>
+                  <td className="table-cell">{s.rollNo}</td>
+                  <td className="table-cell text-muted-foreground">{s.phone}</td>
+                  <td className="table-cell">
+                    <span className={`badge ${s.attendance >= 90 ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>{s.attendance}%</span>
+                  </td>
+                  <td className="table-cell">
+                    <span className={`badge ${s.status === 'active' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>{s.status}</span>
+                  </td>
+                  <td className="table-cell">
+                    <div className="flex gap-1">
+                      <button onClick={() => setSelectedStudent(s)} className="p-1.5 rounded hover:bg-muted" title="View"><Eye className="w-4 h-4 text-muted-foreground" /></button>
+                      <button className="p-1.5 rounded hover:bg-muted" title="Edit"><Edit className="w-4 h-4 text-muted-foreground" /></button>
+                      <button onClick={() => { if (confirm(`Delete ${s.name}?`)) actionStore.deleteStudent(s.id); }} className="p-1.5 rounded hover:bg-muted" title="Delete"><Trash2 className="w-4 h-4 text-destructive" /></button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
