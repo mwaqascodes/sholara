@@ -1,4 +1,4 @@
-# Recursive junction directories
+# Recursive junction directories (Windows directory junctions pointing back to parent)
 api/
 payments/
 
