@@ -1,154 +1,181 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { supabase, UserProfile } from './supabase'
 
-export type UserRole = 'admin' | 'teacher' | 'student';
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  role: string | null;
-  school_name: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+export type { UserProfile }
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: any }>;
-  signUpWithEmail: (email: string, password: string, name: string, role: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  refreshProfile: () => Promise<void>;
-  isAuthenticated: boolean;
+  user: User | null
+  session: Session | null
+  profile: UserProfile | null
+  loading: boolean
+  signInWithGoogle: () => Promise<void>
+  signInWithEmail: (email: string, password: string) => Promise<{ error: any }>
+  signUpWithEmail: (email: string, password: string, name: string, role: string) => Promise<{ error: any }>
+  signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error: any }>
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// Build a fallback profile directly from the Supabase User object
+function buildFallbackProfile(u: User): UserProfile {
+  return {
+    id: u.id,
+    email: u.email ?? '',
+    full_name:
+      u.user_metadata?.full_name ??
+      u.user_metadata?.name ??
+      u.email?.split('@')[0] ??
+      'User',
+    avatar_url:
+      u.user_metadata?.avatar_url ??
+      u.user_metadata?.picture ??
+      '',
+    role: (u.user_metadata?.role as UserProfile['role']) ?? 'admin',
+    school_name: 'My School',
+    created_at: new Date().toISOString(),
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true) // TRUE until we know auth state for certain
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+  async function fetchAndSetProfile(u: User) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', u.id)
+        .single()
 
-    if (data) {
-      setProfile(data as UserProfile);
-    } else if (error) {
-      console.error('Profile fetch error:', error);
+      if (data) {
+        setProfile(data as UserProfile)
+        return
+      }
+
+      // No row found — try to insert one
+      if (error?.code === 'PGRST116' || error?.code === '406') {
+        const newProfile = buildFallbackProfile(u)
+        const { data: inserted } = await supabase
+          .from('profiles')
+          .insert(newProfile)
+          .select()
+          .single()
+        setProfile(inserted ? (inserted as UserProfile) : newProfile)
+        return
+      }
+
+      // Table missing or network error — use local fallback so user gets in
+      setProfile(buildFallbackProfile(u))
+    } catch {
+      setProfile(buildFallbackProfile(u))
     }
-  }, []);
-
-  const refreshProfile = useCallback(async () => {
-    if (user) await fetchProfile(user.id);
-  }, [user, fetchProfile]);
+  }
 
   useEffect(() => {
-    // Set up auth listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          // Use setTimeout to avoid deadlock with Supabase client
-          setTimeout(() => fetchProfile(session.user.id), 0);
-        } else {
-          setProfile(null);
+    let mounted = true
+    
+    // Step 1: Check for an existing session on first load
+    const initializeAuth = async () => {
+      const { data: { session: s } } = await supabase.auth.getSession()
+      
+      if (mounted) {
+        if (s?.user) {
+          setSession(s)
+          setUser(s.user)
+          await fetchAndSetProfile(s.user)
         }
-        setLoading(false);
+        setLoading(false)
       }
-    );
-
-    // THEN get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  const signInWithGoogle = useCallback(async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-
-    if (result.error) {
-      console.error('Google sign-in error:', result.error);
-      throw result.error;
     }
-    // If result.redirected, browser will redirect to Google
-  }, []);
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
-  }, []);
+    initializeAuth()
 
-  const signUpWithEmail = useCallback(async (email: string, password: string, name: string, role: string) => {
+    // Step 2: Listen for auth state changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, s) => {
+        if (!mounted) return
+
+        if (s?.user) {
+          setSession(s)
+          setUser(s.user)
+          // Use non-blocking fetch here to keep UI responsive
+          fetchAndSetProfile(s.user)
+        } else {
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+        }
+        
+        // Ensure loading is false if an event occurs (like SIGNED_IN)
+        setLoading(false)
+      }
+    )
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function signInWithGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
+    })
+  }
+
+  async function signInWithEmail(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return { error }
+  }
+
+  async function signUpWithEmail(email: string, password: string, name: string, role: string) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: name, role },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
-    });
-    return { error };
-  }, []);
+    })
+    return { error }
+  }
 
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-  }, []);
+  async function signOut() {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+    setProfile(null)
+  }
 
-  const resetPassword = useCallback(async (email: string) => {
+  async function resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
-    });
-    return { error };
-  }, []);
+    })
+    return { error }
+  }
 
   return (
     <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      loading,
-      signInWithGoogle,
-      signInWithEmail,
-      signUpWithEmail,
-      signOut,
-      resetPassword,
-      refreshProfile,
-      isAuthenticated: !!user,
+      user, session, profile, loading,
+      signInWithGoogle, signInWithEmail,
+      signUpWithEmail, signOut, resetPassword,
     }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

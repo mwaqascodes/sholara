@@ -53,6 +53,7 @@ export interface FeeRecord {
   status: 'paid' | 'pending' | 'overdue';
   dueDate: string;
   paymentMethod?: string;
+  month?: string;
 }
 
 export interface ExamResult {

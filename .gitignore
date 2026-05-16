@@ -15,6 +15,19 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Environment variables (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite timestamp files
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
 .next/
 build/
 
@@ -28,3 +41,8 @@ build/
 *.njsproj
 *.sln
 *.sw?
+
+# Superpowers internal state
+.superpowers/
+
+.vercel

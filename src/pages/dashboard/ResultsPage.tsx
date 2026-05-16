@@ -1,420 +1,181 @@
 import { useState } from 'react';
-import { examResults, gradeScale, students, getGrade, allClasses, allSubjects } from '@/lib/demo-data';
-import type { ExamResult } from '@/lib/demo-data';
-import { useAuth } from '@/lib/auth-context';
-import { Search, Download, FileText, BarChart3, Award, Eye, CheckCircle, Clock, Edit3, TrendingUp } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart3, Plus, Search, Eye, Trash2, Download, FileText, TrendingUp, Award, CheckCircle2, XCircle, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { C, PageHeader, StatCard, SearchBar, Badge, Btn, Table, Tr, Td, Modal, Field, Input, Select, Avatar } from '@/lib/design-system';
 
-type Tab = 'overview' | 'marks-entry' | 'report-cards' | 'analytics' | 'grading';
+interface ExamResult {
+  id: number;
+  studentName: string;
+  class: string;
+  exam: string;
+  totalMarks: number;
+  obtainedMarks: number;
+  percentage: number;
+  grade: string;
+  status: 'pass' | 'fail';
+}
+
+const INITIAL: ExamResult[] = [
+  { id: 1, studentName: 'Muhammad Ahmad', class: 'Class 8A', exam: 'Mid-term 2026', totalMarks: 500, obtainedMarks: 445, percentage: 89, grade: 'A+', status: 'pass' },
+  { id: 2, studentName: 'Fatima Malik', class: 'Class 8A', exam: 'Mid-term 2026', totalMarks: 500, obtainedMarks: 412, percentage: 82.4, grade: 'A', status: 'pass' },
+  { id: 3, studentName: 'Ali Hassan', class: 'Class 8A', exam: 'Mid-term 2026', totalMarks: 500, obtainedMarks: 320, percentage: 64, grade: 'B', status: 'pass' },
+  { id: 4, studentName: 'Sara Bibi', class: 'Class 8A', exam: 'Mid-term 2026', totalMarks: 500, obtainedMarks: 478, percentage: 95.6, grade: 'A+', status: 'pass' },
+];
 
 export default function ResultsPage() {
-  const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [items, setItems] = useState<ExamResult[]>(INITIAL);
   const [search, setSearch] = useState('');
-  const [classFilter, setClassFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedResult, setSelectedResult] = useState<ExamResult | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const navigate = useNavigate();
 
-  const isTeacherOrAdmin = user?.role === 'admin' || user?.role === 'teacher';
-  const isStudent = user?.role === 'student';
+  const handleDelete = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this result entry?')) {
+      setItems(prev => prev.filter(i => i.id !== id));
+      toast.success('Result entry deleted');
+    }
+  };
 
-  const filtered = examResults.filter(r => {
-    if (search && !r.studentName.toLowerCase().includes(search.toLowerCase()) && !String(r.rollNo).includes(search)) return false;
-    if (classFilter !== 'all' && r.class !== classFilter) return false;
-    if (statusFilter !== 'all' && r.status !== statusFilter) return false;
-    if (isStudent) return r.studentId === '1' || r.status === 'published';
-    return true;
-  });
+  const filtered = items.filter(i => 
+    i.studentName.toLowerCase().includes(search.toLowerCase()) || 
+    i.exam.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const classes = [...new Set(examResults.map(r => r.class))];
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fd = new FormData(e.target as HTMLFormElement);
+    const obt = parseInt(fd.get('obtained') as string);
+    const tot = parseInt(fd.get('total') as string);
+    const perc = (obt / tot) * 100;
+    
+    const getG = (p: number) => {
+        if (p >= 90) return 'A+';
+        if (p >= 80) return 'A';
+        if (p >= 70) return 'B';
+        if (p >= 60) return 'C';
+        return 'F';
+    };
 
-  const tabs: { id: Tab; label: string; icon: React.ElementType; roles: string[] }[] = [
-    { id: 'overview', label: 'Results', icon: FileText, roles: ['admin', 'teacher', 'student'] },
-    { id: 'marks-entry', label: 'Marks Entry', icon: Edit3, roles: ['admin', 'teacher'] },
-    { id: 'report-cards', label: 'Report Cards', icon: Award, roles: ['admin', 'teacher', 'student'] },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, roles: ['admin', 'teacher'] },
-    { id: 'grading', label: 'Grading Scale', icon: TrendingUp, roles: ['admin'] },
-  ];
-
-  const visibleTabs = tabs.filter(t => t.roles.includes(user?.role || ''));
+    const newResult: ExamResult = {
+      id: Date.now(),
+      studentName: fd.get('student') as string,
+      class: 'Class 8A',
+      exam: fd.get('exam') as string,
+      totalMarks: tot,
+      obtainedMarks: obt,
+      percentage: Math.round(perc * 10) / 10,
+      grade: getG(perc),
+      status: perc >= 40 ? 'pass' : 'fail'
+    };
+    
+    setItems([newResult, ...items]);
+    toast.success('Student result published successfully');
+    setShowAdd(false);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-bold">Exam Results</h2>
-          <p className="text-sm text-muted-foreground">Mid-Term 2026 Examination</p>
-        </div>
-        {isTeacherOrAdmin && (
-          <div className="flex gap-2">
-            <button className="btn-outline flex items-center gap-2"><Download className="w-4 h-4" /> Export</button>
-            <button className="btn-primary flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Publish All</button>
-          </div>
-        )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <PageHeader title="Exam & Performance" sub="Comprehensive student performance tracking and grade management">
+        <Btn variant="secondary" icon={FileText} onClick={() => navigate('/dashboard/result-card')}>Result Cards</Btn>
+        <Btn icon={Plus} onClick={() => setShowAdd(true)}>Enter New Marks</Btn>
+      </PageHeader>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        <StatCard label="School Average" value="78.5%" icon={TrendingUp} color="#3b82f6" trend={{ type:'up', val:'+5%' }} />
+        <StatCard label="Passing Rate" value="94%" icon={CheckCircle2} color="#22c55e" trend={{ type:'up', val:'+2%' }} />
+        <StatCard label="Results Published" value={items.length} icon={BarChart3} color="#a855f7" />
+        <StatCard label="Distinctions" value="12" icon={Award} color="#fbbf24" />
       </div>
 
-      <div className="flex gap-1 flex-wrap card-white p-1.5">
-        {visibleTabs.map(t => (
-          <button key={t.id} onClick={() => { setTab(t.id); setSelectedResult(null); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted text-muted-foreground'
-            }`}
-          >
-            <t.icon className="w-4 h-4" /> {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search by student name or examination title..." width="100%" />
       </div>
 
-      {selectedResult && <ReportCardView result={selectedResult} onBack={() => setSelectedResult(null)} />}
-
-      {!selectedResult && tab === 'overview' && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="text" placeholder="Search by name or roll number..." value={search} onChange={e => setSearch(e.target.value)} className="input-field pl-10" />
-            </div>
-            <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="input-field w-auto">
-              <option value="all">All Classes</option>
-              {classes.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            {isTeacherOrAdmin && (
-              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="input-field w-auto">
-                <option value="all">All Status</option>
-                <option value="draft">Draft</option>
-                <option value="approved">Approved</option>
-                <option value="published">Published</option>
-              </select>
-            )}
-          </div>
-
-          <div className="card-white overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="table-header">Roll#</th>
-                  <th className="table-header">Student</th>
-                  <th className="table-header">Class</th>
-                  <th className="table-header">Obtained</th>
-                  <th className="table-header">%</th>
-                  <th className="table-header">Grade</th>
-                  <th className="table-header">GPA</th>
-                  <th className="table-header">Rank</th>
-                  {isTeacherOrAdmin && <th className="table-header">Status</th>}
-                  <th className="table-header"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r, i) => (
-                  <motion.tr key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="table-cell font-mono">{r.rollNo}</td>
-                    <td className="table-cell font-medium">{r.studentName}</td>
-                    <td className="table-cell">{r.class}</td>
-                    <td className="table-cell">{r.obtainedMarks}/{r.totalMarks}</td>
-                    <td className="table-cell font-semibold">{r.percentage}%</td>
-                    <td className="table-cell">
-                      <span className={`badge ${r.grade.startsWith('A') ? 'bg-success/10 text-success' : r.grade === 'B' ? 'bg-info/10 text-info' : r.grade === 'F' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}>{r.grade}</span>
-                    </td>
-                    <td className="table-cell font-medium">{r.gpa.toFixed(1)}</td>
-                    <td className="table-cell">
-                      {r.rank <= 3 ? (
-                        <span className="flex items-center gap-1"><Award className={`w-4 h-4 ${r.rank === 1 ? 'text-warning' : 'text-muted-foreground'}`} />#{r.rank}</span>
-                      ) : <span>#{r.rank}</span>}
-                    </td>
-                    {isTeacherOrAdmin && (
-                      <td className="table-cell">
-                        <span className={`badge capitalize ${r.status === 'published' ? 'bg-success/10 text-success' : r.status === 'approved' ? 'bg-info/10 text-info' : 'bg-warning/10 text-warning'}`}>{r.status}</span>
-                      </td>
-                    )}
-                    <td className="table-cell">
-                      <button onClick={() => setSelectedResult(r)} className="p-1.5 rounded-lg hover:bg-muted" title="View Report Card"><Eye className="w-4 h-4 text-muted-foreground" /></button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {!selectedResult && tab === 'marks-entry' && <MarksEntryTab />}
-
-      {!selectedResult && tab === 'report-cards' && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.filter(r => r.status === 'published' || isTeacherOrAdmin).map(r => (
-            <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-white-hover cursor-pointer" onClick={() => setSelectedResult(r)}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">#{r.rollNo}</span>
-                </div>
+      <Table headers={['Student Name', 'Exam Details', 'Marks Progress', 'Grade', 'Status', 'Actions']}>
+        {filtered.length > 0 ? filtered.map(i => (
+          <Tr key={i.id}>
+            <Td>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Avatar name={i.studentName} size={36} color="#3b82f6" />
                 <div>
-                  <p className="font-semibold text-sm">{r.studentName}</p>
-                  <p className="text-xs text-muted-foreground">{r.class} · {r.examName}</p>
+                   <p style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>{i.studentName}</p>
+                   <p style={{ margin: 0, fontSize: 11, color: C.sub }}>{i.class}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-bold font-display text-primary">{r.percentage}%</p>
-                  <p className="text-[10px] text-muted-foreground">Percentage</p>
-                </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-bold font-display">{r.grade}</p>
-                  <p className="text-[10px] text-muted-foreground">Grade</p>
-                </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg font-bold font-display">#{r.rank}</p>
-                  <p className="text-[10px] text-muted-foreground">Rank</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {!selectedResult && tab === 'analytics' && <AnalyticsTab />}
-
-      {!selectedResult && tab === 'grading' && (
-        <div className="card-white max-w-2xl">
-          <h3 className="font-display font-semibold mb-4">Grading Scale</h3>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="table-header">Grade</th>
-                <th className="table-header">Percentage</th>
-                <th className="table-header">GPA</th>
-                <th className="table-header">Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gradeScale.map(g => (
-                <tr key={g.grade} className="border-b border-border/50">
-                  <td className="table-cell">
-                    <span className={`badge ${g.grade.startsWith('A') ? 'bg-success/10 text-success' : g.grade === 'B' ? 'bg-info/10 text-info' : g.grade === 'F' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}>{g.grade}</span>
-                  </td>
-                  <td className="table-cell">{g.minPercentage}% - {g.maxPercentage}%</td>
-                  <td className="table-cell font-semibold">{g.gpa.toFixed(1)}</td>
-                  <td className="table-cell text-muted-foreground">{g.remarks}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MarksEntryTab() {
-  const [selectedClass, setSelectedClass] = useState('Class 10');
-  const [selectedSubject, setSelectedSubject] = useState('Mathematics');
-  const classStudents = students.filter(s => s.class === selectedClass);
-  const [marks, setMarks] = useState<Record<string, number>>(
-    Object.fromEntries(classStudents.map(s => [s.id, Math.floor(Math.random() * 30) + 65]))
-  );
-  const [saved, setSaved] = useState(false);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
-        <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className="input-field w-auto">
-          {allClasses.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="input-field w-auto">
-          {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select className="input-field w-auto">
-          <option>Monthly Test</option>
-          <option>Mid-Term</option>
-          <option>Annual</option>
-        </select>
-      </div>
-
-      <div className="card-white">
-        <h3 className="font-display font-semibold mb-4">Enter Marks — {selectedClass} · {selectedSubject}</h3>
-        <div className="space-y-2">
-          {classStudents.map(s => {
-            const m = marks[s.id] || 0;
-            const g = getGrade(m);
-            return (
-              <div key={s.id} className="flex items-center gap-4 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                <span className="text-sm w-8 text-muted-foreground">#{s.rollNo}</span>
-                <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{s.name}</p></div>
-                <input type="number" min={0} max={100} value={m} onChange={e => { setMarks(p => ({ ...p, [s.id]: Number(e.target.value) })); setSaved(false); }}
-                  className="w-20 px-2 py-1.5 rounded-lg border border-border text-sm text-center bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <span className="text-sm text-muted-foreground w-8">/100</span>
-                <span className={`badge w-10 text-center ${g.grade.startsWith('A') ? 'bg-success/10 text-success' : g.grade === 'B' ? 'bg-info/10 text-info' : g.grade === 'F' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}>{g.grade}</span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex gap-3 mt-4">
-          <button onClick={() => setSaved(true)} className="btn-outline"><Clock className="w-4 h-4 inline mr-1" /> Save Draft</button>
-          <button onClick={() => setSaved(true)} className="btn-primary"><CheckCircle className="w-4 h-4 inline mr-1" /> Submit for Approval</button>
-        </div>
-        {saved && <p className="text-sm text-success mt-2 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Marks saved!</p>}
-      </div>
-    </div>
-  );
-}
-
-function ReportCardView({ result, onBack }: { result: ExamResult; onBack: () => void }) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-      <button onClick={onBack} className="text-sm text-primary hover:underline">← Back to results</button>
-
-      <div className="card-white rounded-2xl p-6 lg:p-8 max-w-3xl mx-auto" id="report-card">
-        <div className="text-center border-b-2 border-primary/20 pb-4 mb-6">
-          <h2 className="font-display text-2xl font-bold text-primary">Al-Noor Academy Lahore</h2>
-          <p className="text-sm text-muted-foreground">123 Main Road, Gulberg III, Lahore · Phone: 042-35781234</p>
-          <div className="mt-3 inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold">
-            {result.examName} — Report Card
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
-            { label: 'Student', value: result.studentName },
-            { label: 'Class', value: result.class },
-            { label: 'Roll No', value: `#${result.rollNo}` },
-            { label: 'Attendance', value: `${result.attendance}%` },
-          ].map(f => (
-            <div key={f.label} className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-xs text-muted-foreground">{f.label}</p>
-              <p className="text-sm font-semibold">{f.value}</p>
-            </div>
-          ))}
-        </div>
-
-        <table className="w-full mb-6">
-          <thead>
-            <tr className="border-b-2 border-primary/20">
-              <th className="table-header">Subject</th>
-              <th className="table-header">Teacher</th>
-              <th className="table-header text-center">Marks</th>
-              <th className="table-header text-center">%</th>
-              <th className="table-header text-center">Grade</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.subjects.map(s => (
-              <tr key={s.subject} className="border-b border-border/50">
-                <td className="table-cell font-medium">{s.subject}</td>
-                <td className="table-cell text-muted-foreground">{s.teacher}</td>
-                <td className="table-cell text-center">{s.marksObtained}/{s.totalMarks}</td>
-                <td className="table-cell text-center font-medium">{s.marksObtained}%</td>
-                <td className="table-cell text-center">
-                  <span className={`badge ${s.grade.startsWith('A') ? 'bg-success/10 text-success' : s.grade === 'B' ? 'bg-info/10 text-info' : s.grade === 'F' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}>{s.grade}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="p-4 bg-primary/5 rounded-lg text-center">
-            <p className="text-2xl font-bold font-display text-primary">{result.percentage}%</p>
-            <p className="text-xs text-muted-foreground">Percentage</p>
-          </div>
-          <div className="p-4 bg-primary/5 rounded-lg text-center">
-            <p className="text-2xl font-bold font-display">{result.grade}</p>
-            <p className="text-xs text-muted-foreground">Grade</p>
-          </div>
-          <div className="p-4 bg-primary/5 rounded-lg text-center">
-            <p className="text-2xl font-bold font-display">{result.gpa.toFixed(1)}</p>
-            <p className="text-xs text-muted-foreground">GPA</p>
-          </div>
-          <div className="p-4 bg-primary/5 rounded-lg text-center">
-            <p className="text-2xl font-bold font-display">{result.percentage >= 50 ? '✅ Pass' : '❌ Fail'}</p>
-            <p className="text-xs text-muted-foreground">Result</p>
-          </div>
-        </div>
-
-        <div className="bg-muted/50 rounded-lg p-4 mb-6">
-          <p className="text-sm"><span className="font-medium">Teacher Remarks:</span> {result.remarks}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
-          <div className="text-center">
-            <div className="border-t border-foreground/30 pt-2 mt-8">
-              <p className="text-sm font-medium">Class Teacher</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="border-t border-foreground/30 pt-2 mt-8">
-              <p className="text-sm font-medium">Principal</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function AnalyticsTab() {
-  const classAvg = examResults.reduce((acc, r) => {
-    if (!acc[r.class]) acc[r.class] = { total: 0, count: 0 };
-    acc[r.class].total += r.percentage;
-    acc[r.class].count += 1;
-    return acc;
-  }, {} as Record<string, { total: number; count: number }>);
-
-  const chartData = Object.entries(classAvg).map(([cls, d]) => ({ class: cls, avg: Math.round(d.total / d.count) }));
-  const topStudents = [...examResults].sort((a, b) => b.percentage - a.percentage).slice(0, 5);
-  const weakStudents = examResults.filter(r => r.percentage < 60);
-
-  return (
-    <div className="space-y-6">
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="card-white">
-          <h3 className="font-display font-semibold mb-4">Class Average Performance</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 90%)" />
-              <XAxis dataKey="class" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="avg" fill="hsl(142, 72%, 29%)" radius={[4, 4, 0, 0]} name="Average %" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="card-white">
-          <h3 className="font-display font-semibold mb-4">🏆 Top Students</h3>
-          <div className="space-y-2">
-            {topStudents.map((s, i) => (
-              <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/30">
-                <div className="flex items-center gap-3">
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-warning/20 text-warning' : 'bg-muted text-muted-foreground'}`}>
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{s.studentName}</p>
-                    <p className="text-xs text-muted-foreground">{s.class}</p>
+            </Td>
+            <Td>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{i.exam}</p>
+              <p style={{ margin: 0, fontSize: 11, color: C.sub }}>Academic Year 2026</p>
+            </Td>
+            <Td>
+               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ flex: 1, width: 100, height: 6, background: '#f1f5f9', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ width: `${i.percentage}%`, height: '100%', background: i.status === 'pass' ? C.green : C.red }} />
                   </div>
+                  <span style={{ fontSize: 13, fontWeight: 800 }}>{i.obtainedMarks}/{i.totalMarks}</span>
+               </div>
+               <span style={{ fontSize: 11, color: C.sub }}>{i.percentage}% Score</span>
+            </Td>
+            <Td>
+                <div style={{ 
+                    width: 36, height: 36, borderRadius: '50%', background: '#f1f5f9', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.amber, fontWeight: 800, fontSize: 14,
+                    border: '1px solid #e2e8f0'
+                }}>
+                    {i.grade}
                 </div>
-                <span className="text-sm font-bold text-primary">{s.percentage}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </Td>
+            <Td><Badge label={i.status} variant={i.status === 'pass' ? 'success' : 'danger'} /></Td>
+            <Td>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button style={{ padding: 8, background: '#f1f5f9', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.sub }}><Eye size={16} /></button>
+                    <button onClick={() => handleDelete(i.id)} style={{ padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.red }}><Trash2 size={16} /></button>
+                    <button onClick={() => { toast.success('Report downloaded'); }} style={{ padding: 8, background: '#f1f5f9', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.sub }}><Download size={16} /></button>
+                </div>
+            </Td>
+          </Tr>
+        )) : (
+          <Tr><Td colspan={6} style={{ textAlign: 'center', padding: '48px', color: C.muted }}>No examination records found.</Td></Tr>
+        )}
+      </Table>
 
-      {weakStudents.length > 0 && (
-        <div className="card-white">
-          <h3 className="font-display font-semibold mb-4 text-destructive">⚠️ Students Needing Attention (Below 60%)</h3>
-          <div className="space-y-2">
-            {weakStudents.map(s => (
-              <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-destructive/5">
-                <div>
-                  <p className="text-sm font-medium">{s.studentName}</p>
-                  <p className="text-xs text-muted-foreground">{s.class}</p>
-                </div>
-                <span className="badge bg-destructive/10 text-destructive">{s.percentage}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {showAdd && (
+        <Modal title="Enter Examination Marks" onClose={() => setShowAdd(false)}>
+          <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Field label="Target Student">
+              <Input name="student" placeholder="Find student in database..." required />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Assessment Type">
+                    <Select name="exam">
+                        <option>Mid-term Exam 2026</option>
+                        <option>Annual Exam 2026</option>
+                        <option>Special Assessment</option>
+                    </Select>
+                </Field>
+                <Field label="Academic Subject">
+                    <Select name="subject">
+                        <option>Mathematics</option>
+                        <option>English Language</option>
+                        <option>General Science</option>
+                        <option>Urdu Adab</option>
+                        <option>Islamiat</option>
+                    </Select>
+                </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Total Allocated Marks">
+                    <Input name="total" type="number" defaultValue="100" required />
+                </Field>
+                <Field label="Obtained Score">
+                    <Input name="obtained" type="number" placeholder="Enter marks gained" required />
+                </Field>
+            </div>
+            <div style={{ marginTop: 10 }}>
+                <Btn type="submit" style={{ width: '100%' }}>Finalize & Publish Result</Btn>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

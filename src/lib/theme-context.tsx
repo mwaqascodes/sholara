@@ -9,13 +9,13 @@ const ThemeContext = createContext<ThemeContextType>({ isDark: true, toggle: () 
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('pakeducate-theme');
-    return saved ? saved === 'dark' : true; // default dark
+    const saved = localStorage.getItem('Scholara-theme');
+    return saved ? saved === 'dark' : true; // default DARK
   });
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', !isDark);
-    localStorage.setItem('pakeducate-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('Scholara-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
   const toggle = () => setIsDark(p => !p);

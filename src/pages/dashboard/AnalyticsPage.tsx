@@ -1,105 +1,130 @@
-import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { feeChartData, attendanceChartData, performanceChartData, students, feeRecords } from '@/lib/demo-data';
-import { Download, TrendingUp, TrendingDown } from 'lucide-react';
-
-const enrollmentData = [
-  { month: 'Jul', count: 780 }, { month: 'Aug', count: 810 }, { month: 'Sep', count: 825 },
-  { month: 'Oct', count: 830 }, { month: 'Nov', count: 838 }, { month: 'Dec', count: 840 },
-  { month: 'Jan', count: 842 }, { month: 'Feb', count: 845 }, { month: 'Mar', count: 847 },
-];
-
-const classPerformance = [
-  { class: 'Class 5', avg: 72 }, { class: 'Class 6', avg: 75 }, { class: 'Class 7', avg: 68 },
-  { class: 'Class 8', avg: 69 }, { class: 'Class 9', avg: 77 }, { class: 'Class 10', avg: 84 },
-];
-
-const tooltipStyle = { background: 'rgba(15,20,35,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#f1f5f9' };
+import { useState } from 'react';
+import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, ArrowDownRight, Calendar, BarChart3, PieChart as PieChartIcon, Zap, Target, Activity } from 'lucide-react';
+import { C, PageHeader, StatCard, Badge, Btn, Select } from '@/lib/design-system';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip as ChartTooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import { attendanceChartData, feeChartData } from '@/lib/demo-data';
 
 export default function AnalyticsPage() {
-  const totalCollected = feeRecords.reduce((s, f) => s + f.paid, 0);
-  const totalExpected = feeRecords.reduce((s, f) => s + f.amount, 0);
+  const [range, setRange] = useState('Last 30 Days');
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>Analytics & Reports</h2>
-        <button className="glass-btn-secondary flex items-center gap-2 text-sm">
-          <Download className="w-4 h-4" /> Export Report
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <PageHeader title="Intelligence & Analytics" sub="Deep-dive metrics and predictive insights for institutional performance optimization.">
+        <div style={{ display: 'flex', gap: 10 }}>
+            <Select value={range} onChange={(e: any) => setRange(e.target.value)} style={{ width: 160 }}>
+                {['Today', 'Last 7 Days', 'Last 30 Days', 'This Term', 'This Year'].map(r => <option key={r} value={r}>{r}</option>)}
+            </Select>
+            <Btn variant="primary" icon={BarChart3}>Export Intelligence</Btn>
+        </div>
+      </PageHeader>
+
+      {/* Primary KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <StatCard label="Enrollment Velocity" value="+12.4%" icon={Users} color="#3b82f6" trend={{ type:'up', val: 'Target: 15%' }} />
+        <StatCard label="Revenue Realization" value="88.2%" icon={DollarSign} color="#22c55e" trend={{ type:'up', val: '+2.1%' }} />
+        <StatCard label="Academic Engagement" value="92.4%" icon={Activity} color="#f59e0b" trend={{ type:'down', val: '-0.8%' }} />
+        <StatCard label="Institution Rating" value="4.8/5" icon={Award} color="#a855f7" sub="Market Leader" />
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Enrollment Growth', value: '+8.6%', trend: 'up', color: '#22c55e' },
-          { label: 'Fee Collection Rate', value: `${Math.round((totalCollected / totalExpected) * 100)}%`, trend: totalCollected / totalExpected > 0.8 ? 'up' : 'down', color: '#f59e0b' },
-          { label: 'Avg Attendance', value: '89.7%', trend: 'up', color: '#3b82f6' },
-          { label: 'Pass Rate', value: '92%', trend: 'up', color: '#8b5cf6' },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="glass-card">
-            <p className="text-xs" style={{ color: 'rgba(241,245,249,0.5)' }}>{s.label}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-2xl font-bold font-display" style={{ color: s.color }}>{s.value}</p>
-              {s.trend === 'up' ? <TrendingUp className="w-4 h-4" style={{ color: '#22c55e' }} /> : <TrendingDown className="w-4 h-4" style={{ color: '#ef4444' }} />}
-            </div>
-          </motion.div>
-        ))}
+      {/* Main Insights Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 20 }}>
+          {/* Attendance Analytics */}
+          <div style={{ ...C.glass, padding: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1e293b' }}>Attendance Dynamics</h3>
+                    <p style={{ margin: 0, fontSize: 11, color: C.sub }}>Year-to-date participation variance</p>
+                  </div>
+                  <Badge label="High Precision" variant="success" />
+              </div>
+              <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={attendanceChartData}>
+                      <defs>
+                          <linearGradient id="colorPres" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                          </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fill: C.muted, fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: C.muted, fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                      <ChartTooltip contentStyle={{ background: '#0a0f1e', border: `1px solid ${C.border}`, borderRadius: 12, color: '#1e293b' }} />
+                      <Area type="monotone" dataKey="present" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorPres)" dot={{ fill: '#22c55e', r: 4 }} />
+                  </AreaChart>
+              </ResponsiveContainer>
+          </div>
+
+          {/* Revenue Analytics */}
+          <div style={{ ...C.glass, padding: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1e293b' }}>Revenue Liquidity</h3>
+                    <p style={{ margin: 0, fontSize: 11, color: C.sub }}>Collected vs. Outstanding liabilities</p>
+                  </div>
+                  <Btn variant="secondary" style={{ padding: '4px 10px', fontSize: 11 }}>Details</Btn>
+              </div>
+              <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={feeChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fill: C.muted, fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fill: C.muted, fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}/>
+                      <ChartTooltip contentStyle={{ background: '#0a0f1e', border: `1px solid ${C.border}`, borderRadius: 12, color: '#1e293b' }} />
+                      <Bar dataKey="collected" fill="#22c55e" radius={[6, 6, 0, 0]} barSize={24} />
+                      <Bar dataKey="pending" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={24} />
+                  </BarChart>
+              </ResponsiveContainer>
+          </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="glass-card">
-          <h3 className="font-display font-semibold mb-4" style={{ color: '#f1f5f9' }}>Enrollment Trend</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={enrollmentData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} domain={['dataMin - 20', 'dataMax + 10']} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="count" stroke="#22c55e" fill="rgba(34,197,94,0.15)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Cohort Performance Hierarchy */}
+      <div style={{ ...C.glass, padding: 24, background: 'rgba(255,255,255,0.015)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(168,85,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Target size={20} color="#a855f7" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1e293b' }}>Academic Excellence Leaderboard</h3>
+                <p style={{ margin: 0, fontSize: 12, color: C.sub }}>Inter-class competitive metrics and GPA benchmarks</p>
+              </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
+              {[
+                  { class: 'Grade 10-A (Science)', score: 94, gpa: 3.88, trend: 4.2 },
+                  { class: 'Grade 8-C (Linguistics)', score: 88, gpa: 3.65, trend: 2.1 },
+                  { class: 'Grade 5-B (Arts)', score: 85, gpa: 3.42, trend: -1.4 },
+                  { class: 'Grade 2-A (Foundation)', score: 91, gpa: 3.75, trend: 3.8 },
+              ].map(item => (
+                  <div key={item.class} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px', background: '#f8fafc', borderRadius: 16, border: `1px solid rgba(255,255,255,0.05)`, transition: 'transform 0.2s', cursor: 'pointer' }}>
+                      <div style={{ flex: 1 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#1e293b' }}>{item.class}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                              <div style={{ flex: 1, height: 6, borderRadius: 10, background: '#f1f5f9' }}>
+                                  <div style={{ height: '100%', width: `${item.score}%`, background: `linear-gradient(90deg, ${C.amber}, #f59e0b)`, borderRadius: 10 }} />
+                              </div>
+                              <span style={{ fontSize: 11, color: C.sub, fontWeight: 700 }}>{item.score}% Efficiency</span>
+                          </div>
+                      </div>
+                      <div style={{ textAlign: 'right', borderLeft: `1px solid ${C.border}`, paddingLeft: 16 }}>
+                          <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1e293b' }}>{item.gpa}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, color: item.trend >= 0 ? '#22c55e' : '#ef4444', fontSize: 10, fontWeight: 800 }}>
+                              {item.trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                              {Math.abs(item.trend).toFixed(1)}%
+                          </div>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      </div>
 
-        <div className="glass-card">
-          <h3 className="font-display font-semibold mb-4" style={{ color: '#f1f5f9' }}>Revenue: Collected vs Expected</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={feeChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} tickFormatter={v => `${v / 1000}K`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `PKR ${v.toLocaleString()}`} />
-              <Bar dataKey="collected" fill="#22c55e" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expected" fill="rgba(255,255,255,0.08)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="glass-card">
-          <h3 className="font-display font-semibold mb-4" style={{ color: '#f1f5f9' }}>Class Comparison</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={classPerformance} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis type="number" tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} domain={[0, 100]} />
-              <YAxis dataKey="class" type="category" tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} width={70} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="avg" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="glass-card">
-          <h3 className="font-display font-semibold mb-4" style={{ color: '#f1f5f9' }}>Subject Performance</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={performanceChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="subject" tick={{ fontSize: 11, fill: 'rgba(241,245,249,0.5)' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'rgba(241,245,249,0.5)' }} domain={[0, 100]} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="avg" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Strategic Intelligence Footer */}
+      <div style={{ padding: '24px', background: 'rgba(59,130,246,0.05)', borderRadius: 16, border: '1px solid rgba(59,130,246,0.1)', display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={22} color="#3b82f6" />
+          </div>
+          <div>
+              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1e293b' }}>Predictive Performance Analysis</h4>
+              <p style={{ margin: 0, fontSize: 12, color: C.sub }}>Machine learning models suggest a probable 4% increase in institutional GPA by the end of the next academic cycle based on current trends.</p>
+          </div>
       </div>
     </div>
   );

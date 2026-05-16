@@ -91,7 +91,7 @@ const DEFAULT_SETTINGS: SchoolSettings = {
   ramadanSchedule: true,
 };
 
-const STORAGE_KEY = 'pakeducate_school_settings_v1';
+const STORAGE_KEY = 'Scholara_school_settings_v1';
 
 interface SchoolContextType {
   settings: SchoolSettings;

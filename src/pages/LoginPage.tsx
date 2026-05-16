@@ -1,223 +1,174 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { motion } from 'framer-motion';
-import BackgroundOrbs from '@/components/BackgroundOrbs';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { Eye, EyeOff, Mail, Lock, AlertCircle, ShieldCheck } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { motion } from "framer-motion"
+import { supabase } from "@/lib/supabase"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { signInWithEmail, signInWithGoogle, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const { user, signInWithGoogle, signInWithEmail } = useAuth()
 
-  // If already authenticated, redirect
-  if (isAuthenticated) {
-    navigate('/dashboard', { replace: true });
-    return null;
-  }
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // If user is already logged in, go straight to dashboard
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/dashboard', { replace: true })
+      }
+    })
+  }, [navigate])
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-    setLoading(true);
-    const { error: err } = await signInWithEmail(email, password);
-    setLoading(false);
-    if (err) {
-      if (err.message?.includes('Invalid login')) {
-        setError('Incorrect email or password. Try again or use Google login.');
-      } else if (err.message?.includes('Email not confirmed')) {
-        setError('Please verify your email before signing in. Check your inbox.');
-      } else {
-        setError(err.message || 'Login failed. Please try again.');
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const { error } = await signInWithEmail(email, password)
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
       }
-    } else {
-      toast.success('Welcome back!');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true })
+    } catch (err: any) {
+      setError(err?.message || "Failed to sign in. Please check your credentials.")
+      setLoading(false)
     }
-  };
+  }
 
   const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    setError('');
+    setGoogleLoading(true)
+    setError(null)
     try {
-      await signInWithGoogle();
+      await signInWithGoogle()
     } catch (err: any) {
-      setError('Google sign-in failed. Please try again.');
-      setGoogleLoading(false);
+      setError("Failed to sign in with Google.")
+      setGoogleLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex app-bg relative">
-      <BackgroundOrbs />
-
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden z-10">
-        <div className="relative z-10 flex flex-col justify-center p-16">
-          <Link to="/" className="flex items-center gap-2 mb-12">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-display text-2xl font-bold">
-              <span style={{ color: '#f1f5f9' }}>Learnique</span>
-              <span style={{ color: '#86c94a' }}>-Vista</span>
-            </span>
-          </Link>
-          <h2 className="font-display text-4xl font-bold mb-4" style={{ color: '#f1f5f9' }}>
-            Manage Your School Smarter
-          </h2>
-          <p className="text-lg mb-8" style={{ color: 'rgba(241,245,249,0.5)' }}>
-            Attendance, fees, results — all in one AI-powered platform.
-          </p>
-          <div className="space-y-3">
-            {['AI-Powered Assistant', 'Real-time Analytics', 'Works on Any Device'].map(f => (
-              <div key={f} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(99,153,34,0.2)' }}>
-                  <span className="text-xs" style={{ color: '#86c94a' }}>✓</span>
-                </div>
-                <span className="text-sm" style={{ color: 'rgba(241,245,249,0.7)' }}>{f}</span>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          <div className="p-8">
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200 mb-4">
+                <ShieldCheck className="text-slate-900 w-8 h-8" />
               </div>
-            ))}
-          </div>
-          <div className="mt-12 grid grid-cols-2 gap-4">
-            {[{ n: '500+', l: 'Schools' }, { n: '50K+', l: 'Students' }, { n: '99.9%', l: 'Uptime' }, { n: '4.9★', l: 'Rating' }].map(s => (
-              <div key={s.l} className="glass-card p-4">
-                <p className="text-2xl font-bold font-display" style={{ color: '#86c94a' }}>{s.n}</p>
-                <p className="text-sm" style={{ color: 'rgba(241,245,249,0.5)' }}>{s.l}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-[420px]">
-          <div className="p-10 rounded-3xl" style={{
-            background: '#0f1e35',
-            border: '1px solid rgba(255,255,255,0.12)',
-            boxShadow: '0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)'
-          }}>
-            {/* Logo mobile */}
-            <div className="lg:hidden flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
-                <GraduationCap className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-display text-xl font-bold">
-                <span style={{ color: '#f1f5f9' }}>Learnique</span>
-                <span style={{ color: '#86c94a' }}>-Vista</span>
-              </span>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Scholara</h1>
+              <p className="text-slate-400 font-bold text-xs mt-1 uppercase tracking-widest">School Management System</p>
             </div>
 
-            <h2 className="font-display text-2xl font-bold mb-1" style={{ color: '#f1f5f9' }}>Welcome Back</h2>
-            <p className="text-sm mb-6" style={{ color: 'rgba(241,245,249,0.45)' }}>Sign in to your school management dashboard</p>
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <p className="text-sm font-medium">{error}</p>
+              </div>
+            )}
 
-            {/* Google Sign In */}
-            <button
-              onClick={handleGoogleLogin}
-              disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-xl font-semibold text-[15px] transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60"
-              style={{ background: '#ffffff', color: '#1f2937' }}
-            >
-              {googleLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 48 48">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-              )}
-              {googleLoading ? 'Signing in...' : 'Continue with Google'}
-            </button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 my-6">
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-              <span className="text-xs" style={{ color: 'rgba(241,245,249,0.35)' }}>or continue with email</span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-            </div>
-
-            {/* Email form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div>
-                <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style={{ color: 'rgba(241,245,249,0.5)' }}>Email Address</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="you@school.com"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }}
+                    placeholder="admin@school.com"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-4 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                    required
                   />
                 </div>
               </div>
+
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'rgba(241,245,249,0.5)' }}>Password</label>
-                  <Link to="/forgot-password" className="text-[11px] font-medium hover:underline" style={{ color: '#86c94a' }}>Forgot Password?</Link>
-                </div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full pl-11 pr-11 py-3 rounded-xl text-sm outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-12 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                    required
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                    {showPassword ? <EyeOff className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} /> : <Eye className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
-              {error && (
-                <div className="px-4 py-3 rounded-xl text-[13px]" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171' }}>
-                  {error}
-                </div>
-              )}
+              <div className="flex justify-end">
+                <Link to="/forgot-password" size="sm" className="text-xs font-bold text-amber-600 hover:text-amber-700">
+                  Forgot Password?
+                </Link>
+              </div>
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-3.5 rounded-xl font-semibold text-[15px] flex items-center justify-center gap-2 text-white transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
-                style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)', boxShadow: '0 4px 20px rgba(99,153,34,0.4)' }}
+                disabled={loading || googleLoading}
+                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl font-black transition-all shadow-lg shadow-amber-200 active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {loading ? 'Signing in...' : 'Sign In'}
-                {!loading && <ArrowRight className="w-4 h-4" />}
+                {loading ? "Signing in..." : "Access Dashboard"}
               </button>
             </form>
 
-            <p className="text-center text-sm mt-5" style={{ color: 'rgba(241,245,249,0.45)' }}>
-              Don't have an account?{' '}
-              <Link to="/signup" className="font-medium hover:underline" style={{ color: '#86c94a' }}>Sign up</Link>
-            </p>
-
-            {/* Trust badges */}
-            <div className="flex items-center justify-center gap-4 mt-6 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              {['🔒 Secure', '🌐 Google OAuth', '✅ Encrypted'].map(b => (
-                <span key={b} className="text-[11px]" style={{ color: 'rgba(241,245,249,0.3)' }}>{b}</span>
-              ))}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-100"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase tracking-widest bg-white px-4 text-slate-400 font-bold">
+                Or continue with
+              </div>
             </div>
+
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loading || googleLoading}
+              className="w-full h-12 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Google
+            </button>
           </div>
-        </motion.div>
-      </div>
+          
+          <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
+            <p className="text-sm font-bold text-slate-400">
+              Don't have an account? <Link to="/signup" className="text-amber-600 font-black hover:underline uppercase tracking-widest text-xs ml-1">Sign up</Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
-  );
+  )
 }

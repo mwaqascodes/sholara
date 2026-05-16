@@ -2,6 +2,7 @@
 // Pages subscribe to add new students/teachers/fees etc. without page reload.
 import { useEffect, useState } from 'react';
 import { students as seedStudents, teachers as seedTeachers, feeRecords as seedFees, type Student, type Teacher, type FeeRecord } from './demo-data';
+import { addStudent as storeAddStudent, addTeacher as storeAddTeacher, getSubjectsForClass } from './store';
 
 type Listener = () => void;
 
@@ -12,7 +13,7 @@ interface State {
   toasts: { id: string; type: 'success' | 'error' | 'info'; message: string }[];
 }
 
-const STORAGE_KEY = 'pakeducate_action_store_v1';
+const STORAGE_KEY = 'Scholara_action_store_v1';
 
 function load(): State {
   try {
@@ -83,6 +84,17 @@ export const actionStore = {
     };
     state = { ...state, students: [newStudent, ...state.students] };
     persist(); emit();
+    // Also write to the main store so StudentsPage reflects the change immediately
+    try {
+      storeAddStudent({
+        ...newStudent,
+        urduName: newStudent.nameUrdu || newStudent.name,
+        admissionDate: new Date().toISOString().split('T')[0],
+        feeStatus: 'Unpaid',
+        gender: 'Male',
+        subjects: getSubjectsForClass(newStudent.class || 'Class 1'),
+      });
+    } catch {}
     pushToast('success', `Student "${newStudent.name}" added (${newStudent.class})`);
     return { ok: true, message: `Added ${newStudent.name}`, student: newStudent };
   },
@@ -113,6 +125,8 @@ export const actionStore = {
     };
     state = { ...state, teachers: [t, ...state.teachers] };
     persist(); emit();
+    // Also write to the main store so TeachersPage reflects the change immediately
+    try { storeAddTeacher({ ...t, address: '—' }); } catch {}
     pushToast('success', `Teacher "${t.name}" added`);
     return { ok: true, message: `Added teacher ${t.name}` };
   },

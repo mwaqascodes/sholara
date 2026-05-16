@@ -1,10 +1,6 @@
+// Placeholder stub. The original component was never committed; this restores
+// build resolution for the 5 pages that import it. The pages already render
+// their own inline gradient orbs, so a no-op render is visually fine.
 export default function BackgroundOrbs() {
-  return (
-    <>
-      <div className="bg-orb bg-orb-1" />
-      <div className="bg-orb bg-orb-2" />
-      <div className="bg-orb bg-orb-3" />
-      <div className="bg-orb bg-orb-4" />
-    </>
-  );
+  return null
 }

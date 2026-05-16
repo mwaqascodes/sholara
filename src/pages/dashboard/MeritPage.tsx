@@ -1,74 +1,151 @@
-import { motion } from 'framer-motion';
-import { Trophy, Star, Medal, Award } from 'lucide-react';
+import { useState } from 'react';
+import { Trophy, Plus, Search, Star, Award, TrendingUp, Medal, ShieldAlert, Heart, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
+import { C, PageHeader, StatCard, SearchBar, Badge, Btn, Table, Tr, Td, Modal, Field, Input, Select, Avatar } from '@/lib/design-system';
 
-const leaderboard = [
-  { rank: 1, name: 'Fatima Zahra', class: 'Class 10', points: 285, academic: 180, sports: 45, discipline: 40, extra: 20 },
-  { rank: 2, name: 'Zainab Malik', class: 'Class 10', points: 260, academic: 170, sports: 30, discipline: 35, extra: 25 },
-  { rank: 3, name: 'Ali Hassan', class: 'Class 10', points: 240, academic: 160, sports: 40, discipline: 25, extra: 15 },
-  { rank: 4, name: 'Ayesha Siddiqui', class: 'Class 9', points: 215, academic: 145, sports: 25, discipline: 30, extra: 15 },
-  { rank: 5, name: 'Bilal Ahmed', class: 'Class 7', points: 190, academic: 130, sports: 30, discipline: 20, extra: 10 },
+interface MeritRecord {
+  id: number;
+  studentName: string;
+  class: string;
+  points: number;
+  reason: string;
+  date: string;
+  type: 'merit' | 'demerit';
+}
+
+const INITIAL: MeritRecord[] = [
+  { id: 1, studentName: 'Muhammad Ahmad', class: 'Class 5A', points: 50, reason: 'First place in Science Fair', date: '2026-04-15', type: 'merit' },
+  { id: 2, studentName: 'Fatima Malik', class: 'Class 4B', points: 30, reason: 'Consistently helpful behavior', date: '2026-04-18', type: 'merit' },
+  { id: 3, studentName: 'Ali Hassan', class: 'Class 8A', points: -10, reason: 'Late to class multiple times', date: '2026-04-20', type: 'demerit' },
+  { id: 4, studentName: 'Sara Bibi', class: 'Class 10C', points: 100, reason: 'National level debate winner', date: '2026-04-10', type: 'merit' },
 ];
 
-const trophyColors = ['#f59e0b', '#94a3b8', '#cd7f32'];
-
 export default function MeritPage() {
+  const [merits, setMerits] = useState<MeritRecord[]>(INITIAL);
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+
+  const filtered = merits.filter(m => 
+    m.studentName.toLowerCase().includes(search.toLowerCase()) || 
+    m.reason.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPoints = merits.reduce((s, m) => s + m.points, 0);
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const type = formData.get('type') as 'merit' | 'demerit';
+    const pts = parseInt(formData.get('points') as string) || 0;
+    
+    const newRecord: MeritRecord = {
+      id: Date.now(),
+      studentName: formData.get('student') as string,
+      class: 'Class 5',
+      points: type === 'merit' ? Math.abs(pts) : -Math.abs(pts),
+      reason: formData.get('reason') as string,
+      date: new Date().toISOString().split('T')[0],
+      type
+    };
+    
+    setMerits([newRecord, ...merits]);
+    toast.success('Conduct record added successfully');
+    setShowAdd(false);
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Delete this conduct record?')) {
+      setMerits(merits.filter(m => m.id !== id));
+      toast.success('Record removed');
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>Merit System</h2>
-        <button className="glass-btn-primary flex items-center gap-2 text-sm"><Star className="w-4 h-4" /> Award Points</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <PageHeader title="Merit & Conduct" sub="Monitor and reward student achievements and discipline">
+        <Btn icon={Plus} onClick={() => setShowAdd(true)}>Track Behavior</Btn>
+      </PageHeader>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        <StatCard label="Merit Points" value={merits.filter(m => m.type === 'merit').length} icon={Trophy} color="#22c55e" trend={{ type:'up', val:'+5 this week' }} />
+        <StatCard label="Discipline Issues" value={merits.filter(m => m.type === 'demerit').length} icon={ShieldAlert} color="#ef4444" />
+        <StatCard label="Net Score" value={totalPoints} icon={Star} color="#fbbf24" trend={{ type:'up', val:'Positive balance' }} />
       </div>
 
-      {/* Top 3 podium */}
-      <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-        {[1, 0, 2].map(idx => {
-          const s = leaderboard[idx];
-          const isFirst = idx === 0;
-          return (
-            <motion.div key={s.rank} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.15 }}
-              className={`glass-card text-center ${isFirst ? 'transform -translate-y-4' : ''}`}>
-              <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: `${trophyColors[idx]}22` }}>
-                <Trophy className="w-6 h-6" style={{ color: trophyColors[idx] }} />
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search by student name or reason..." width="100%" />
+      </div>
+
+      <Table headers={['Student Account', 'Category', 'Points', 'Description', 'Date', 'Action']}>
+        {filtered.length > 0 ? filtered.map(m => (
+          <Tr key={m.id}>
+            <Td>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Avatar name={m.studentName} size={36} color={m.type === 'merit' ? '#22c55e' : '#ef4444'} />
+                <div>
+                    <p style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>{m.studentName}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: C.sub }}>{m.class}</p>
+                </div>
               </div>
-              <span className="text-2xl font-bold font-display" style={{ color: trophyColors[idx] }}>#{s.rank}</span>
-              <p className="font-semibold text-sm mt-1" style={{ color: '#f1f5f9' }}>{s.name}</p>
-              <p className="text-xs" style={{ color: 'rgba(241,245,249,0.4)' }}>{s.class}</p>
-              <p className="text-lg font-bold mt-2" style={{ color: '#22c55e' }}>{s.points} pts</p>
-            </motion.div>
-          );
-        })}
-      </div>
+            </Td>
+            <Td><Badge label={m.type} variant={m.type === 'merit' ? 'success' : 'danger'} /></Td>
+            <Td>
+                <div style={{ 
+                    fontSize: 16, fontWeight: 900, 
+                    color: m.type === 'merit' ? '#22c55e' : '#ef4444',
+                    display: 'flex', alignItems: 'center', gap: 4
+                }}>
+                    {m.type === 'merit' ? '+' : ''}{m.points}
+                    {m.type === 'merit' ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(90deg)' }} />}
+                </div>
+            </Td>
+            <Td style={{ color: C.sub, maxWidth: 300 }}>{m.reason}</Td>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.muted }}>
+                    <Calendar size={14} />
+                    <span style={{ fontSize: 12 }}>{m.date}</span>
+                </div>
+            </Td>
+            <Td>
+                <button onClick={() => handleDelete(m.id)} style={{ padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.red }}><Trash2 size={16} /></button>
+            </Td>
+          </Tr>
+        )) : (
+          <Tr><Td colspan={6} style={{ textAlign: 'center', padding: '48px', color: C.muted }}>No behavior records found.</Td></Tr>
+        )}
+      </Table>
 
-      {/* Full leaderboard */}
-      <div className="glass-card overflow-x-auto">
-        <h3 className="font-display font-semibold mb-4" style={{ color: '#f1f5f9' }}>Full Leaderboard</h3>
-        <table className="glass-table w-full">
-          <thead>
-            <tr>
-              <th>Rank</th><th>Student</th><th>Class</th>
-              <th className="text-center">Academic</th><th className="text-center">Sports</th>
-              <th className="text-center">Discipline</th><th className="text-center">Extra</th>
-              <th className="text-center">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.map(s => (
-              <tr key={s.rank}>
-                <td className="font-bold" style={{ color: s.rank <= 3 ? trophyColors[s.rank - 1] : '#f1f5f9' }}>
-                  {s.rank <= 3 ? ['🥇', '🥈', '🥉'][s.rank - 1] : `#${s.rank}`}
-                </td>
-                <td className="font-medium">{s.name}</td>
-                <td style={{ color: 'rgba(241,245,249,0.5)' }}>{s.class}</td>
-                <td className="text-center">{s.academic}</td>
-                <td className="text-center">{s.sports}</td>
-                <td className="text-center">{s.discipline}</td>
-                <td className="text-center">{s.extra}</td>
-                <td className="text-center font-bold" style={{ color: '#22c55e' }}>{s.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {showAdd && (
+        <Modal title="Report Student Behavior" onClose={() => setShowAdd(false)}>
+          <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Field label="Target Student">
+              <Input name="student" placeholder="Find student..." required />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Assessment Type">
+                    <Select name="type">
+                        <option value="merit">Merit Card (Positive)</option>
+                        <option value="demerit">Demerit / Warning (Negative)</option>
+                    </Select>
+                </Field>
+                <Field label="Points Weightage">
+                    <Input name="points" type="number" defaultValue="10" required />
+                </Field>
+            </div>
+            <Field label="Detailed Reason / Remarks">
+                <textarea 
+                    name="reason"
+                    placeholder="Provide specific details about the behavior..." 
+                    style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12, color: '#1e293b', fontSize: 14, outline: 'none', width: '100%', height: 100, resize: 'none' }} 
+                    required 
+                />
+            </Field>
+            <div style={{ marginTop: 10 }}>
+                <Btn type="submit" style={{ width: '100%' }}>Register Conduct Entry</Btn>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

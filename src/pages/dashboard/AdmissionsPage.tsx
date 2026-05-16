@@ -1,92 +1,171 @@
 import { useState } from 'react';
-import { UserPlus, CheckCircle, XCircle, Clock, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { UserPlus, Search, Download, Eye, CheckCircle, XCircle, Clock, Filter, Trash2, Phone, User, Calendar, FileText, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { C, PageHeader, StatCard, SearchBar, Badge, Btn, Table, Tr, Td, Avatar, Modal, Field, Input, Select } from '@/lib/design-system';
 
-interface Application {
-  id: string; name: string; fatherName: string; class: string;
-  phone: string; appliedDate: string; status: 'pending' | 'approved' | 'rejected';
+interface AdmissionRequest {
+  id: number;
+  studentName: string;
+  fatherName: string;
+  class: string;
+  phone: string;
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
-const applications: Application[] = [
-  { id: '1', name: 'Ahmad Raza', fatherName: 'Raza Khan', class: 'Class 5', phone: '0300-1112233', appliedDate: '25/03/2026', status: 'pending' },
-  { id: '2', name: 'Hira Batool', fatherName: 'Batool Shah', class: 'Class 3', phone: '0301-4445566', appliedDate: '24/03/2026', status: 'pending' },
-  { id: '3', name: 'Waqar Ahmed', fatherName: 'Ahmed Hussain', class: 'Class 7', phone: '0302-7778899', appliedDate: '22/03/2026', status: 'approved' },
-  { id: '4', name: 'Khadija Bibi', fatherName: 'Ali Raza', class: 'Class 1', phone: '0303-0001122', appliedDate: '20/03/2026', status: 'rejected' },
-  { id: '5', name: 'Hamid Khan', fatherName: 'Khan Muhammad', class: 'Class 8', phone: '0304-3334455', appliedDate: '19/03/2026', status: 'approved' },
+const INITIAL: AdmissionRequest[] = [
+  { id: 1, studentName: 'Zeeshan Ali', fatherName: 'Ali Khan', class: 'Class 1', phone: '0300-1234567', date: '2026-04-18', status: 'pending' },
+  { id: 2, studentName: 'Hina Fatima', fatherName: 'Muhammad Rizwan', class: 'Class 4', phone: '0312-9876543', date: '2026-04-19', status: 'approved' },
+  { id: 3, studentName: 'Umar Farooq', fatherName: 'Farooq Ahmad', class: 'Class 6', phone: '0333-1122334', date: '2026-04-20', status: 'pending' },
+  { id: 4, studentName: 'Ayesha Bibi', fatherName: 'Sajid Mehmood', class: 'Class 2', phone: '0345-5566778', date: '2026-04-15', status: 'rejected' },
 ];
 
 export default function AdmissionsPage() {
-  const [filter, setFilter] = useState('all');
+  const [items, setItems] = useState<AdmissionRequest[]>(INITIAL);
   const [search, setSearch] = useState('');
-  const filtered = applications
-    .filter(a => filter === 'all' || a.status === filter)
-    .filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [selected, setSelected] = useState<AdmissionRequest | null>(null);
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this admission record permanently?')) {
+      setItems(prev => prev.filter(i => i.id !== id));
+      toast.success('Admission record purged from system');
+    }
+  };
+
+  const filtered = items.filter(i => {
+    const ms = i.studentName.toLowerCase().includes(search.toLowerCase());
+    const mst = filter === 'all' || i.status === filter;
+    return ms && mst;
+  });
+
+  const handleStatus = (id: number, status: 'approved' | 'rejected') => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, status } : i));
+    toast.success(`Admission application has been ${status}`);
+    setSelected(null);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>Admissions</h2>
-        <button className="glass-btn-primary flex items-center gap-2 text-sm"><UserPlus className="w-4 h-4" /> New Application</button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Pending', count: applications.filter(a => a.status === 'pending').length, icon: Clock, color: '#f59e0b' },
-          { label: 'Approved', count: applications.filter(a => a.status === 'approved').length, icon: CheckCircle, color: '#22c55e' },
-          { label: 'Rejected', count: applications.filter(a => a.status === 'rejected').length, icon: XCircle, color: '#ef4444' },
-        ].map(s => (
-          <div key={s.label} className="glass-card text-center">
-            <s.icon className="w-6 h-6 mx-auto mb-1" style={{ color: s.color }} />
-            <p className="text-2xl font-bold font-display" style={{ color: s.color }}>{s.count}</p>
-            <p className="text-xs" style={{ color: 'rgba(241,245,249,0.5)' }}>{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-3 flex-wrap items-center">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
-          <input className="glass-input pl-10" placeholder="Search applications..." value={search} onChange={e => setSearch(e.target.value)} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <PageHeader title="New Admissions" sub="Manage and review incoming enrollment applications for the 2026 academic year">
+        <div style={{ display: 'flex', gap: 10 }}>
+            <Btn variant="secondary" icon={Download}>Export Applicants</Btn>
+            <Btn icon={UserPlus} onClick={() => toast.info('Direct offline admission entry coming soon!')}>New Application</Btn>
         </div>
-        {['all', 'pending', 'approved', 'rejected'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-xl text-sm font-medium capitalize ${filter === f ? 'glass-btn-primary' : 'glass-btn-secondary'}`}>
-            {f}
-          </button>
-        ))}
+      </PageHeader>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        <StatCard label="Total Applicants" value={items.length} icon={UserPlus} color="#3b82f6" trend={{ type:'up', val:'+12%' }} />
+        <StatCard label="Pending Review" value={items.filter(i => i.status === 'pending').length} icon={Clock} color="#f59e0b" />
+        <StatCard label="Enrollment Rate" value="65%" icon={CheckCircle2} color="#22c55e" />
       </div>
 
-      <div className="glass-card overflow-x-auto">
-        <table className="glass-table w-full">
-          <thead>
-            <tr><th>Name</th><th>Father</th><th>Class</th><th>Phone</th><th>Applied</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {filtered.map(app => (
-              <tr key={app.id}>
-                <td className="font-medium">{app.name}</td>
-                <td style={{ color: 'rgba(241,245,249,0.6)' }}>{app.fatherName}</td>
-                <td>{app.class}</td>
-                <td style={{ color: 'rgba(241,245,249,0.5)' }}>{app.phone}</td>
-                <td style={{ color: 'rgba(241,245,249,0.5)' }}>{app.appliedDate}</td>
-                <td>
-                  <span className={app.status === 'approved' ? 'badge-success' : app.status === 'rejected' ? 'badge-danger' : 'badge-warning'}>
-                    {app.status}
-                  </span>
-                </td>
-                <td>
-                  {app.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <button className="badge-success cursor-pointer text-[10px]">Approve</button>
-                      <button className="badge-danger cursor-pointer text-[10px]">Reject</button>
-                    </div>
-                  )}
-                </td>
-              </tr>
+      <div style={{ 
+        display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', 
+        padding: '12px 16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' 
+      }}>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search by student or father's name..." width={320} />
+        <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+            {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
+                <button key={f} onClick={() => setFilter(f)} style={{
+                    padding: '8px 16px', borderRadius: 12, border: `1px solid ${filter === f ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                    background: filter === f ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.02)',
+                    color: filter === f ? C.amber : C.sub,
+                    transition: 'all 0.2s ease',
+                    textTransform: 'capitalize'
+                }}>{f}</button>
             ))}
-          </tbody>
-        </table>
+        </div>
       </div>
+
+      <Table headers={['Applicant Details', 'Parental Info', 'Phone Number', 'Applied On', 'Status', 'Actions']}>
+        {filtered.length > 0 ? filtered.map(i => (
+          <Tr key={i.id} onClick={() => setSelected(i)}>
+            <Td>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <Avatar name={i.studentName} size={36} color="#3b82f6" />
+                <div>
+                   <p style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>{i.studentName}</p>
+                   <p style={{ margin: 0, fontSize: 11, color: C.sub }}>Applying for {i.class}</p>
+                </div>
+              </div>
+            </Td>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1e293b', fontSize: 13, fontWeight: 500 }}>
+                    <User size={14} color={C.muted} /> {i.fatherName}
+                </div>
+            </Td>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.sub, fontSize: 13 }}>
+                    <Phone size={14} color={C.muted} /> {i.phone}
+                </div>
+            </Td>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.muted }}>
+                    <Calendar size={14} />
+                    <span style={{ fontSize: 12 }}>{i.date}</span>
+                </div>
+            </Td>
+            <Td><Badge label={i.status} variant={i.status === 'approved' ? 'success' : i.status === 'pending' ? 'warning' : 'danger'} /></Td>
+            <Td>
+                <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                    <button style={{ padding: 8, background: '#f1f5f9', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.sub }} onClick={() => setSelected(i)}><Eye size={16} /></button>
+                    {i.status === 'pending' && (
+                        <>
+                            <button style={{ padding: 8, background: 'rgba(34,197,94,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.green }} onClick={() => handleStatus(i.id, 'approved')} title="Approve"><CheckCircle size={16} /></button>
+                            <button style={{ padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.red }} onClick={() => handleStatus(i.id, 'rejected')} title="Reject"><XCircle size={16} /></button>
+                        </>
+                    )}
+                    <button style={{ padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.red }} onClick={() => handleDelete(i.id)} title="Delete Record"><Trash2 size={16} /></button>
+                </div>
+            </Td>
+          </Tr>
+        )) : (
+          <Tr><Td colspan={6} style={{ textAlign: 'center', padding: '48px', color: C.muted }}>No admission applications found.</Td></Tr>
+        )}
+      </Table>
+
+      {selected && (
+          <Modal title="Admission Application Details" onClose={() => setSelected(null)}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '24px', background: 'linear-gradient(135deg, rgba(59,130,246,0.1), transparent)', borderRadius: 16, border: '1px solid rgba(59,130,246,0.2)' }}>
+                      <Avatar name={selected.studentName} size={64} color="#3b82f6" />
+                      <div>
+                          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1e293b' }}>{selected.studentName}</h3>
+                          <p style={{ margin: 0, fontSize: 13, color: C.sub }}>Applying for Entry in {selected.class}</p>
+                      </div>
+                      <div style={{ marginLeft: 'auto' }}>
+                          <Badge label={selected.status} variant={selected.status === 'approved' ? 'success' : selected.status === 'pending' ? 'warning' : 'danger'} />
+                      </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      {[
+                          { label: 'Parent/Guardian', value: selected.fatherName, icon: User },
+                          { label: 'Primary Contact', value: selected.phone, icon: Phone },
+                          { label: 'Submission Date', value: selected.date, icon: Calendar },
+                          { label: 'Academic Standing', value: 'Document Verified', icon: FileText }
+                      ].map(f => (
+                          <div key={f.label} style={{ padding: '14px 18px', background: '#f8fafc', borderRadius: 12, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <f.icon size={18} color={C.muted} />
+                              <div>
+                                  <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{f.label}</p>
+                                  <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{f.value}</p>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+                  {selected.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                          <Btn variant="success" style={{ flex: 1 }} onClick={() => handleStatus(selected.id, 'approved')}>Approve Admission</Btn>
+                          <Btn variant="danger" style={{ flex: 1 }} onClick={() => handleStatus(selected.id, 'rejected')}>Deny Application</Btn>
+                      </div>
+                  )}
+                  {selected.status !== 'pending' && (
+                      <Btn variant="secondary" style={{ width: '100%' }} onClick={() => setSelected(null)}>Close View</Btn>
+                  )}
+              </div>
+          </Modal>
+      )}
     </div>
   );
 }

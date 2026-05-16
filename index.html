@@ -2,7 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Scholara — The Intelligent School OS</title>
+    <meta name="description" content="Scholara — AI-driven school management system. Automate admissions, fees, attendance, results, and staff — all in one platform. Built for schools of every size.">
+    <meta name="author" content="Scholara" />
+    <meta name="theme-color" content="#f59e0b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Scholara" />
+    <meta property="og:title" content="Scholara — The Intelligent School OS">
+    <meta property="og:description" content="AI-driven school management for elite institutions. Manage students, teachers, fees, exams, and more — just by typing.">
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Scholara — The Intelligent School OS">
+    <meta name="twitter:description" content="AI-driven school management for elite institutions.">
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <script>
       // GitHub Pages SPA redirect receiver: decode the path from the query string
       (function(l) {
@@ -18,13 +38,14 @@
         }
       }(window.location));
     </script>
-    <title>Dashboard — IlmDesk 🏫</title>
-    <meta name="description" content="IlmDesk — Pakistan's smartest school management system. Manage students, attendance, fees, results with AI.">
-    <meta name="author" content="IlmDesk" />
-    <meta property="og:title" content="IlmDesk — School Management System">
-    <meta property="og:description" content="Professional AI-powered school management for Pakistani schools.">
-    <meta property="og:type" content="website" />
-    <link rel="icon" type="image/svg+xml" href="/placeholder.svg">
+    <script>
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,251 +1,251 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, School, Palette, Globe, BookOpen, Wallet, MessageCircle, Calendar, Award, Moon, RefreshCw, Save, Plus, X } from 'lucide-react';
+import { Settings, School, Bell, Palette, Globe, Save, Building, Phone, Mail, MapPin, Database, ShieldCheck, Languages, Zap, CreditCard, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTheme } from '@/lib/theme-context';
 import { useI18n } from '@/lib/i18n-context';
-import { useSchool, BOARDS, SCHOOL_TYPES, EXAM_SYSTEMS, GRADING_SCALES, COMMON_SUBJECTS, PAKISTAN_PROVINCES, PAKISTAN_CITIES } from '@/lib/school-context';
-import { toast } from 'sonner';
+import { useSchool } from '@/lib/school-context';
+import { C, PageHeader, Field, Btn, Badge, Card, Input, Select } from '@/lib/design-system';
 
 export default function SettingsPage() {
   const { isDark, toggle } = useTheme();
   const { lang, setLang } = useI18n();
-  const { settings, update, reset } = useSchool();
-  const [draft, setDraft] = useState(settings);
-  const [newSubject, setNewSubject] = useState('');
+  const { settings, update: updateSettings } = useSchool();
 
-  const set = <K extends keyof typeof draft>(key: K, value: typeof draft[K]) =>
-    setDraft(prev => ({ ...prev, [key]: value }));
+  const [tab, setTab] = useState<'school'|'appearance'|'academic'|'system'>('school');
+  const [schoolForm, setSchoolForm] = useState({
+    name:        settings?.name        || 'Scholara Premier Academy',
+    address:     settings?.address     || 'Main Campus, Sector H-8, Islamabad, Pakistan',
+    phone:       settings?.phone       || '+92 51 1234567',
+    email:       settings?.email       || 'admin@scholara.edu.pk',
+    principalName: settings?.principalName || 'Prof. Dr. Zahid Ahmed',
+    sessionStart:  settings?.sessionStart  || '2026-04-01',
+    sessionEnd:    settings?.sessionEnd    || '2027-03-31',
+    currency:      settings?.currency      || 'PKR',
+    timezone:      'Asia/Karachi',
+  });
 
-  const save = () => {
-    update(draft);
-    toast.success('School settings saved successfully', { description: `${draft.name} • ${draft.academicYear}` });
-  };
+  const TABS = [
+    { id:'school',     label:'Organization',  icon:School },
+    { id:'appearance', label:'Interface',     icon:Palette },
+    { id:'academic',   label:'Academics',     icon:Building },
+    { id:'system',     label:'System',        icon:Settings },
+  ] as const;
 
-  const handleReset = () => {
-    if (!confirm('Reset all school settings to defaults? This cannot be undone.')) return;
-    reset();
-    setTimeout(() => setDraft(settings), 0);
-    toast.info('Settings reset to defaults');
-  };
-
-  const addSubject = (s: string) => {
-    const v = s.trim();
-    if (!v || draft.subjects.includes(v)) return;
-    set('subjects', [...draft.subjects, v]);
-    setNewSubject('');
-  };
-  const removeSubject = (s: string) => set('subjects', draft.subjects.filter(x => x !== s));
-
-  return (
-    <div className="space-y-6 pb-20">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="font-display text-2xl font-bold flex items-center gap-2"><SettingsIcon className="w-6 h-6 text-primary" /> School Settings</h2>
-          <p className="text-sm text-muted-foreground mt-1">Configure your school identity, academics, and Pakistan-specific options</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={handleReset} className="btn-secondary flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Reset</button>
-          <button onClick={save} className="btn-primary flex items-center gap-2"><Save className="w-4 h-4" /> Save Changes</button>
-        </div>
+  const ToggleRow = ({ label, sub, value, onChange }: { label:string; sub:string; value:boolean; onChange:()=>void }) => (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 0', borderBottom:`1px solid ${C.border}` }}>
+      <div>
+        <p style={{ margin:0, fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{label}</p>
+        <p style={{ margin:'4px 0 0', fontSize: 12, color: C.sub }}>{sub}</p>
       </div>
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Identity */}
-        <Section icon={<School className="w-5 h-5 text-primary" />} title="School Identity">
-          <Field label="School Name (English)"><input className="input-field" value={draft.name} onChange={e => set('name', e.target.value)} /></Field>
-          <Field label="اسکول کا نام (اردو)"><input className="input-field" dir="rtl" value={draft.nameUrdu} onChange={e => set('nameUrdu', e.target.value)} /></Field>
-          <Field label="Principal Name"><input className="input-field" value={draft.principalName} onChange={e => set('principalName', e.target.value)} /></Field>
-          <Field label="School Motto"><input className="input-field" value={draft.motto} onChange={e => set('motto', e.target.value)} /></Field>
-          <Field label="Established Year"><input type="number" className="input-field" value={draft.estYear} onChange={e => set('estYear', e.target.value)} /></Field>
-          <Field label="Logo URL (optional)"><input className="input-field" placeholder="https://..." value={draft.logoUrl} onChange={e => set('logoUrl', e.target.value)} /></Field>
-        </Section>
-
-        {/* Contact */}
-        <Section icon={<MessageCircle className="w-5 h-5 text-primary" />} title="Contact & Location">
-          <Field label="Email"><input type="email" className="input-field" value={draft.email} onChange={e => set('email', e.target.value)} /></Field>
-          <Field label="Phone"><input type="tel" className="input-field" placeholder="042-35781234" value={draft.phone} onChange={e => set('phone', e.target.value)} /></Field>
-          <Field label="WhatsApp Number"><input type="tel" className="input-field" placeholder="+92 300 1234567" value={draft.whatsapp} onChange={e => set('whatsapp', e.target.value)} /></Field>
-          <Field label="Full Address"><input className="input-field" value={draft.address} onChange={e => set('address', e.target.value)} /></Field>
-          <Field label="City">
-            <select className="input-field" value={draft.city} onChange={e => set('city', e.target.value)}>
-              {PAKISTAN_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </Field>
-          <Field label="Province / Region">
-            <select className="input-field" value={draft.province} onChange={e => set('province', e.target.value)}>
-              {PAKISTAN_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </Field>
-        </Section>
-
-        {/* Pakistani Education System */}
-        <Section icon={<BookOpen className="w-5 h-5 text-primary" />} title="Pakistani Education System">
-          <Field label="Examination Board">
-            <select className="input-field" value={draft.board} onChange={e => set('board', e.target.value as typeof draft.board)}>
-              {BOARDS.map(b => <option key={b} value={b}>{b} Board</option>)}
-            </select>
-          </Field>
-          <Field label="School Type / Level">
-            <select className="input-field" value={draft.schoolType} onChange={e => set('schoolType', e.target.value as typeof draft.schoolType)}>
-              {SCHOOL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </Field>
-          <Field label="Medium of Instruction">
-            <div className="flex gap-2 flex-wrap">
-              {(['Urdu', 'English', 'Bilingual'] as const).map(m => (
-                <button key={m} type="button" onClick={() => set('medium', m)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${draft.medium === m ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/70'}`}>
-                  {m}
-                </button>
-              ))}
-            </div>
-          </Field>
-          <Field label="Registration / PEF / Affiliation No."><input className="input-field" value={draft.registrationNo} onChange={e => set('registrationNo', e.target.value)} /></Field>
-          <Field label="EMIS Code (Govt)"><input className="input-field" placeholder="e.g. 31410001" value={draft.emisCode} onChange={e => set('emisCode', e.target.value)} /></Field>
-        </Section>
-
-        {/* Academic */}
-        <Section icon={<Calendar className="w-5 h-5 text-primary" />} title="Academic Year & Exams">
-          <Field label="Academic Year"><input className="input-field" placeholder="2025-2026" value={draft.academicYear} onChange={e => set('academicYear', e.target.value)} /></Field>
-          <Field label="Academic Year Starts In">
-            <select className="input-field" value={draft.academicYearStart} onChange={e => set('academicYearStart', e.target.value)}>
-              {['March', 'April', 'August', 'September'].map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </Field>
-          <Field label="Examination System">
-            <select className="input-field" value={draft.examSystem} onChange={e => set('examSystem', e.target.value as typeof draft.examSystem)}>
-              {EXAM_SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </Field>
-          <Field label="Grading Scale">
-            <select className="input-field" value={draft.gradingScale} onChange={e => set('gradingScale', e.target.value as typeof draft.gradingScale)}>
-              {GRADING_SCALES.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </Field>
-          <Field label="Passing Percentage (%)"><input type="number" min={0} max={100} className="input-field" value={draft.passingPercentage} onChange={e => set('passingPercentage', Number(e.target.value))} /></Field>
-          <Field label="Weekly Off Day">
-            <select className="input-field" value={draft.weeklyOff} onChange={e => set('weeklyOff', e.target.value)}>
-              {['Friday', 'Saturday', 'Sunday', 'Friday & Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </Field>
-        </Section>
-
-        {/* Fees */}
-        <Section icon={<Wallet className="w-5 h-5 text-primary" />} title="Fees & Currency">
-          <Field label="Currency"><input className="input-field" value={draft.currency} onChange={e => set('currency', e.target.value)} /></Field>
-          <Field label="Default Monthly Fee (₨)"><input type="number" className="input-field" value={draft.monthlyFeeDefault} onChange={e => set('monthlyFeeDefault', Number(e.target.value))} /></Field>
-          <Field label="Admission Fee (₨)"><input type="number" className="input-field" value={draft.admissionFee} onChange={e => set('admissionFee', Number(e.target.value))} /></Field>
-          <Field label="Late Fee Fine (₨/day)"><input type="number" className="input-field" value={draft.lateFeeFine} onChange={e => set('lateFeeFine', Number(e.target.value))} /></Field>
-          <Field label="Fee Due Date (day of month)"><input type="number" min={1} max={28} className="input-field" value={draft.feeDueDate} onChange={e => set('feeDueDate', Number(e.target.value))} /></Field>
-        </Section>
-
-        {/* Religious / Cultural — Pakistan-specific */}
-        <Section icon={<Award className="w-5 h-5 text-primary" />} title="Cultural & Religious Settings">
-          <Toggle label="Islamiat as Compulsory Subject" hint="Auto-add to every class timetable" value={draft.islamiatCompulsory} onChange={v => set('islamiatCompulsory', v)} />
-          <Toggle label="Nazra / Qaida Period" hint="Daily Quran reading slot in schedule" value={draft.qaidaTimings} onChange={v => set('qaidaTimings', v)} />
-          <Toggle label="Zuhr Prayer Break" hint="Reserve break time for congregational prayer" value={draft.prayerBreak} onChange={v => set('prayerBreak', v)} />
-          <Toggle label="Ramadan Schedule" hint="Auto-shorten timings during Ramadan" value={draft.ramadanSchedule} onChange={v => set('ramadanSchedule', v)} />
-        </Section>
-
-        {/* Subjects */}
-        <Section icon={<BookOpen className="w-5 h-5 text-primary" />} title="Subjects Offered" full>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {draft.subjects.map(s => (
-              <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm border border-primary/20">
-                {s}
-                <button type="button" onClick={() => removeSubject(s)} className="hover:text-destructive"><X className="w-3.5 h-3.5" /></button>
-              </span>
-            ))}
-            {draft.subjects.length === 0 && <span className="text-sm text-muted-foreground">No subjects added yet</span>}
-          </div>
-          <div className="flex gap-2">
-            <input className="input-field flex-1" placeholder="Add new subject (e.g. Arabic)" value={newSubject}
-              onChange={e => setNewSubject(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSubject(newSubject))} />
-            <button type="button" onClick={() => addSubject(newSubject)} className="btn-secondary flex items-center gap-1"><Plus className="w-4 h-4" /> Add</button>
-          </div>
-          <div className="mt-3">
-            <p className="text-xs text-muted-foreground mb-2">Quick add common Pakistani subjects:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {COMMON_SUBJECTS.filter(s => !draft.subjects.includes(s)).map(s => (
-                <button key={s} type="button" onClick={() => addSubject(s)} className="text-xs px-2.5 py-1 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition-colors">+ {s}</button>
-              ))}
-            </div>
-          </div>
-        </Section>
-
-        {/* Communication */}
-        <Section icon={<MessageCircle className="w-5 h-5 text-primary" />} title="Communication Channels">
-          <Toggle label="WhatsApp Notifications" hint="Send fee reminders, attendance alerts via WhatsApp" value={draft.whatsappEnabled} onChange={v => set('whatsappEnabled', v)} />
-          <Toggle label="SMS Notifications" hint="Send via Pakistani SMS gateways (Jazz/Zong/Telenor)" value={draft.smsEnabled} onChange={v => set('smsEnabled', v)} />
-          <Toggle label="Parent Portal Access" hint="Allow parents to view results, fees, attendance" value={draft.parentPortalEnabled} onChange={v => set('parentPortalEnabled', v)} />
-        </Section>
-
-        {/* Appearance */}
-        <Section icon={<Palette className="w-5 h-5 text-primary" />} title="Appearance & Language">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium flex items-center gap-2"><Moon className="w-4 h-4" /> Dark Mode</p>
-              <p className="text-xs text-muted-foreground">Toggle light/dark theme</p>
-            </div>
-            <button onClick={toggle} className={`w-12 h-6 rounded-full transition-colors relative ${isDark ? 'bg-primary' : 'bg-muted'}`}>
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-card shadow transition-transform ${isDark ? 'left-6' : 'left-0.5'}`} />
-            </button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Interface Language / زبان</p>
-              <p className="text-xs text-muted-foreground">{lang === 'en' ? 'Currently English' : 'موجودہ زبان: اردو'}</p>
-            </div>
-            <button onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
-              className="px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              {lang === 'en' ? 'اردو میں دیکھیں' : 'View in English'}
-            </button>
-          </div>
-        </Section>
-      </div>
-
-      {/* Sticky save bar */}
-      <div className="sticky bottom-4 flex justify-end">
-        <button onClick={save} className="btn-primary flex items-center gap-2 shadow-lg">
-          <Save className="w-4 h-4" /> Save All Changes
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Section({ icon, title, children, full }: { icon: React.ReactNode; title: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <div className={`card-white ${full ? 'lg:col-span-2' : ''}`}>
-      <div className="flex items-center gap-3 mb-4">
-        {icon}
-        <h3 className="font-display font-semibold">{title}</h3>
-      </div>
-      <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</label>
-      <div className="mt-1">{children}</div>
-    </div>
-  );
-}
-
-function Toggle({ label, hint, value, onChange }: { label: string; hint?: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex items-center justify-between py-1">
-      <div className="pr-3">
-        <p className="text-sm font-medium">{label}</p>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      </div>
-      <button onClick={() => onChange(!value)} className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${value ? 'bg-primary' : 'bg-muted'}`}>
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-card shadow transition-transform ${value ? 'left-[22px]' : 'left-0.5'}`} />
+      <button onClick={onChange} style={{ 
+        width: 52, height: 28, borderRadius: 20, border:'none', cursor:'pointer', position:'relative', 
+        background: value ? C.amber : 'rgba(255,255,255,0.1)', transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        flexShrink: 0 
+      }}>
+        <div style={{ 
+            position:'absolute', top: 4, left: value ? 28 : 4, width: 20, height: 20, borderRadius:'50%', 
+            background:'#fff', transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow:'0 2px 8px rgba(0,0,0,0.4)' 
+        }} />
       </button>
+    </div>
+  );
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap: 24 }}>
+      <PageHeader title="Global Settings" sub="Manage institutional identity, system configuration, and user experience" />
+
+      {/* Tabs navigation */}
+      <div style={{ display:'flex', gap: 8, paddingBottom: 0, borderBottom: `1px solid ${C.border}` }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            display:'flex', alignItems:'center', gap: 8,
+            padding:'12px 24px', border:'none', cursor:'pointer', fontSize: 13, fontWeight: 800,
+            background:'transparent', borderBottom: tab===t.id ? `3px solid ${C.amber}` : '3px solid transparent',
+            color: tab===t.id ? '#fff' : C.sub, marginBottom:-1,
+            transition: 'all 0.2s ease'
+          }}>
+            <t.icon size={16}/>{t.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+          {/* School Info */}
+          {tab === 'school' && (
+            <div style={{ display:'flex', flexDirection:'column', gap: 24 }}>
+              <div style={{ ...C.glass, padding: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <School size={20} color="#3b82f6" />
+                    </div>
+                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1e293b' }}>Institutional Identity</h3>
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+                  <Field label="School Name">
+                    <div style={{ position:'relative' }}>
+                      <School size={16} style={{ position:'absolute', left: 14, top:'50%', transform:'translateY(-50%)', color: C.muted }} />
+                      <Input value={schoolForm.name} onChange={(e: any)=>setSchoolForm({...schoolForm,name:e.target.value})} style={{ paddingLeft: 42 }} />
+                    </div>
+                  </Field>
+                  <Field label="Principal / Head of Institution">
+                    <Input value={schoolForm.principalName} onChange={(e: any)=>setSchoolForm({...schoolForm,principalName:e.target.value})} placeholder="Full name of principal" />
+                  </Field>
+                  <Field label="Official Contact Number">
+                    <div style={{ position:'relative' }}>
+                      <Phone size={16} style={{ position:'absolute', left: 14, top:'50%', transform:'translateY(-50%)', color: C.muted }} />
+                      <Input value={schoolForm.phone} onChange={(e: any)=>setSchoolForm({...schoolForm,phone:e.target.value})} style={{ paddingLeft: 42 }} placeholder="+92 51 XXXXXXX" />
+                    </div>
+                  </Field>
+                  <Field label="Institutional Email">
+                    <div style={{ position:'relative' }}>
+                      <Mail size={16} style={{ position:'absolute', left: 14, top:'50%', transform:'translateY(-50%)', color: C.muted }} />
+                      <Input value={schoolForm.email} onChange={(e: any)=>setSchoolForm({...schoolForm,email:e.target.value})} style={{ paddingLeft: 42 }} placeholder="contact@scholara.edu.pk" />
+                    </div>
+                  </Field>
+                  <div style={{ gridColumn:'1/-1' }}>
+                    <Field label="Physical Campus Address">
+                      <div style={{ position:'relative' }}>
+                        <MapPin size={16} style={{ position:'absolute', left: 14, top: 14, color: C.muted }} />
+                        <Input value={schoolForm.address} onChange={(e: any)=>setSchoolForm({...schoolForm,address:e.target.value})} style={{ paddingLeft: 42 }} placeholder="Full campus address" />
+                      </div>
+                    </Field>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                <Btn icon={Save} onClick={() => { updateSettings?.(schoolForm); toast.success('Institutional configuration updated!'); }}>Synchronize Changes</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* Appearance */}
+          {tab === 'appearance' && (
+            <div style={{ ...C.glass, padding: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Palette size={20} color="#8b5cf6" />
+                    </div>
+                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1e293b' }}>Interface & Experience</h3>
+              </div>
+              
+              <ToggleRow label="Dynamic Dark Mode" sub="Optimize the dashboard for night-time and low-light environments" value={isDark} onChange={toggle} />
+              
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 0', borderBottom:`1px solid ${C.border}` }}>
+                <div>
+                  <p style={{ margin:0, fontSize: 15, fontWeight: 700, color: '#1e293b' }}>Primary System Language</p>
+                  <p style={{ margin:'4px 0 0', fontSize: 12, color: C.sub }}>Select the universal language for the interface</p>
+                </div>
+                <div style={{ display:'flex', gap: 10 }}>
+                  {(['en','ur'] as const).map(l => (
+                    <button key={l} onClick={() => setLang(l)} style={{
+                      padding:'10px 24px', borderRadius: 12, border:`1px solid ${lang===l ? C.amber : 'rgba(255,255,255,0.1)'}`, cursor:'pointer',
+                      fontSize: 13, fontWeight: 800,
+                      background: lang===l ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.02)',
+                      color: lang===l ? C.amber : C.sub,
+                      transition: 'all 0.2s ease'
+                    }}>{l==='en'?'English':'اردو'}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ padding:'24px 0 0' }}>
+                <p style={{ margin:'0 0 16px', fontSize: 15, fontWeight: 700, color: '#1e293b' }}>Brand Accent Colors</p>
+                <div style={{ display:'flex', gap: 16 }}>
+                  {['Amber', 'Sky Blue', 'Teal Mint', 'Royal Purple'].map((colorName, i) => {
+                    const colors = ['#f59e0b','#3b82f6','#10b981','#a855f7'];
+                    const active = i === 0; // amber as default for Scholara
+                    return (
+                        <div key={colorName} style={{ textAlign:'center' }}>
+                        <div style={{
+                            width: 42, height: 42, borderRadius: 12, margin:'0 auto 10px', cursor:'pointer',
+                            background: colors[i],
+                            border: active ? '3px solid #fff' : '3px solid transparent',
+                            boxShadow: active ? `0 0 20px ${colors[i]}60` : 'none',
+                            transition: 'all 0.2s ease'
+                        }} />
+                        <p style={{ margin:0, fontSize: 11, color: active ? '#fff' : C.sub, fontWeight: active ? 700 : 500 }}>{colorName}</p>
+                        </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Academic */}
+          {tab === 'academic' && (
+            <div style={{ display:'flex', flexDirection:'column', gap: 24 }}>
+              <div style={{ ...C.glass, padding: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Building size={20} color="#f59e0b" />
+                        </div>
+                    <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1e293b' }}>Academic Session Config</h3>
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+                  <Field label="Session Start Date">
+                      <Input type="date" value={schoolForm.sessionStart} onChange={(e: any)=>setSchoolForm({...schoolForm,sessionStart:e.target.value})} />
+                  </Field>
+                  <Field label="Session End Date">
+                      <Input type="date" value={schoolForm.sessionEnd} onChange={(e: any)=>setSchoolForm({...schoolForm,sessionEnd:e.target.value})} />
+                  </Field>
+                  <Field label="Financial Currency">
+                    <Select value={schoolForm.currency} onChange={(e: any)=>setSchoolForm({...schoolForm,currency:e.target.value})}>
+                      <option value="PKR">Pakistani Rupee (PKR)</option>
+                      <option value="USD">US Dollar (USD)</option>
+                    </Select>
+                  </Field>
+                </div>
+              </div>
+              <div style={{ ...C.glass, padding: '32px' }}>
+                <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: '#1e293b' }}>Administrative Polices</h3>
+                <p style={{ margin: '0 0 16px', fontSize: 13, color: C.sub }}>Automated rules for student promotion and system access.</p>
+                <ToggleRow label="Enable Public Admissions" sub="Allow parents to submit admission forms online" value={true} onChange={()=>{}} />
+                <ToggleRow label="Auto-calculate GPA" sub="Automatically compute grade point averages on result publishing" value={true} onChange={()=>{}} />
+                <ToggleRow label="SMS Portal Integration" sub="Send automatic SMS alerts for attendance and fee reminders" value={false} onChange={()=>toast.info('SMS API connection pending setup')} />
+              </div>
+              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                <Btn icon={Save} onClick={() => toast.success('Academic policies updated!')}>Commit Academic Changes</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* System */}
+          {tab === 'system' && (
+            <div style={{ ...C.glass, padding: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Database size={20} color="#fff" />
+                    </div>
+                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1e293b' }}>Infrastructure & Heartbeat</h3>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {[
+                    { label:'System Core Version', value:'Scholara AI v4.0.1', icon: Zap },
+                    { label:'Database Status', value:'Online (Supabase Cloud)', icon: Database },
+                    { label:'Active Security Layer', value:'AES-256 SSL Encryption', icon: ShieldCheck },
+                    { label:'Current Server Time', value: new Date().toLocaleTimeString(), icon: Clock },
+                    { label:'Storage Capacity', value:'1.2GB of 10GB Used', icon: CreditCard },
+                ].map((info, idx) => (
+                    <div key={info.label} style={{ 
+                        display:'flex', justifyContent:'space-between', alignItems:'center', 
+                        padding:'18px 0', borderBottom: idx === 4 ? 'none' : `1px solid ${C.border}` 
+                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <info.icon size={16} color={C.sub} />
+                        <p style={{ margin:0, fontSize: 14, color: C.sub, fontWeight: 500 }}>{info.label}</p>
+                    </div>
+                    <p style={{ margin:0, fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{info.value}</p>
+                    </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 32, display:'flex', gap: 12 }}>
+                <Btn variant="secondary" icon={Database} onClick={()=>toast.success('Local database snapshot created!')}>Database Backup</Btn>
+                <Btn variant="danger" icon={Zap} onClick={()=>toast.info('System cache purged successfully!')}>Purge Cache</Btn>
+              </div>
+            </div>
+          )}
+      </div>
     </div>
   );
 }

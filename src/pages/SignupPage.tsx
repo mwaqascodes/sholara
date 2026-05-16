@@ -1,198 +1,230 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, Mail, Lock, User, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { motion } from 'framer-motion';
-import BackgroundOrbs from '@/components/BackgroundOrbs';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { Eye, EyeOff, Mail, Lock, User, Building, AlertCircle, CheckCircle2, ShieldCheck, UserPlus } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { motion } from "framer-motion"
+import { toast } from "sonner"
 
 export default function SignupPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<string>('admin');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const { signUpWithEmail, signInWithGoogle, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const { signUpWithEmail, signInWithGoogle, user } = useAuth()
+  
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [schoolName, setSchoolName] = useState("")
+  const [role, setRole] = useState("admin")
+  
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
-  if (isAuthenticated) {
-    navigate('/dashboard', { replace: true });
-    return null;
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true })
+  }, [user, navigate])
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const { error } = await signUpWithEmail(email, password, name, role)
+      if (error) throw error
+      setSuccess(true)
+      toast.success("Account created! Please verify your email.");
+    } catch (err: any) {
+      setError(err.message || "Failed to create account.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const getStrength = () => {
-    let s = 0;
-    if (password.length >= 6) s++;
-    if (password.length >= 8) s++;
-    if (/\d/.test(password)) s++;
-    if (/[^a-zA-Z0-9]/.test(password)) s++;
-    return s;
-  };
-
-  const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][getStrength()];
-  const strengthColors = ['', '#ef4444', '#f59e0b', '#eab308', '#22c55e'];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!name || !email || !password) { setError('Please fill in all required fields.'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
-
-    setLoading(true);
-    const { error: err } = await signUpWithEmail(email, password, name, role);
-    setLoading(false);
-    if (err) {
-      setError(err.message || 'Signup failed.');
-    } else {
-      setSuccess(true);
-    }
-  };
-
   const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    try { await signInWithGoogle(); } catch { setError('Google sign-up failed.'); setGoogleLoading(false); }
-  };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center app-bg relative">
-        <BackgroundOrbs />
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md p-10 rounded-3xl z-10" style={{ background: '#0f1e35', border: '1px solid rgba(255,255,255,0.12)' }}>
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.15)' }}>
-              <span className="text-3xl">✓</span>
-            </div>
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Verification Email Sent!</h2>
-            <p className="text-sm mb-6" style={{ color: 'rgba(241,245,249,0.5)' }}>
-              We've sent a verification link to <strong style={{ color: '#86c94a' }}>{email}</strong>. Click the link in your email to activate your account.
-            </p>
-            <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
-              Back to Login <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </motion.div>
-      </div>
-    );
+    setGoogleLoading(true)
+    setError(null)
+    try {
+      await signInWithGoogle()
+    } catch (err: any) {
+      setError("Failed to sign up with Google.")
+      setGoogleLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center app-bg relative p-4">
-      <BackgroundOrbs />
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[440px] p-10 rounded-3xl relative z-10" style={{
-        background: '#0f1e35',
-        border: '1px solid rgba(255,255,255,0.12)',
-        boxShadow: '0 25px 80px rgba(0,0,0,0.6)'
-      }}>
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)' }}>
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-display text-xl font-bold">
-            <span style={{ color: '#f1f5f9' }}>Learnique</span><span style={{ color: '#86c94a' }}>-Vista</span>
-          </span>
-        </div>
-
-        <h2 className="font-display text-2xl font-bold mb-1" style={{ color: '#f1f5f9' }}>Create Your Account</h2>
-        <p className="text-sm mb-5" style={{ color: 'rgba(241,245,249,0.45)' }}>Join and manage your school smarter</p>
-
-        <button onClick={handleGoogleSignup} disabled={googleLoading} className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl font-semibold text-sm transition-all hover:shadow-lg disabled:opacity-60" style={{ background: '#fff', color: '#1f2937' }}>
-          {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          )}
-          {googleLoading ? 'Signing up...' : 'Sign up with Google'}
-        </button>
-
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-          <span className="text-xs" style={{ color: 'rgba(241,245,249,0.35)' }}>or with email</span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }} />
-            </div>
-          </div>
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@school.com" className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }} />
-            </div>
-          </div>
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
-              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" className="w-full pl-11 pr-11 py-2.5 rounded-xl text-sm outline-none" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                {showPassword ? <EyeOff className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} /> : <Eye className="w-4 h-4" style={{ color: 'rgba(241,245,249,0.4)' }} />}
-              </button>
-            </div>
-            {password && (
-              <div className="flex items-center gap-2 mt-1.5">
-                <div className="flex gap-1 flex-1">{[1,2,3,4].map(i => (<div key={i} className="h-1 flex-1 rounded-full" style={{ background: i <= getStrength() ? strengthColors[getStrength()] : 'rgba(255,255,255,0.1)' }} />))}</div>
-                <span className="text-[10px] font-medium" style={{ color: strengthColors[getStrength()] }}>{strengthLabel}</span>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-[480px]"
+      >
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          <div className="p-8 md:p-10">
+            <div className="flex flex-col items-center mb-8 text-center">
+              <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200 mb-4">
+                <UserPlus className="text-slate-900 w-7 h-7" />
               </div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Scholara</h1>
+              <p className="text-slate-400 font-bold text-xs mt-1 uppercase tracking-widest">Create institutional account</p>
+            </div>
+
+            {success ? (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-8 text-center">
+                <CheckCircle2 className="w-14 h-14 text-amber-500 mx-auto mb-4" />
+                <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">Check your email</h3>
+                <p className="text-slate-500 text-sm mb-8">We've dispatched a verification link to <span className="font-bold text-slate-900">{email}</span>.</p>
+                <Link to="/login" className="inline-block w-full py-4 bg-amber-500 rounded-xl text-slate-900 font-black uppercase tracking-widest text-xs hover:bg-amber-600 transition-all shadow-lg active:scale-[0.98]">
+                  Return to Login
+                </Link>
+              </div>
+            ) : (
+              <>
+                {error && (
+                  <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <p className="text-sm font-medium">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="grid grid-cols-3 gap-2 p-1 bg-slate-50 rounded-xl border border-slate-100">
+                    {['admin', 'teacher', 'student'].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRole(r)}
+                        className={`py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                          role === r ? 'bg-white shadow text-amber-600' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Full Name"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-4 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                        required
+                      />
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="Email Address"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-4 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {role === 'admin' && (
+                    <div className="relative">
+                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={schoolName}
+                        onChange={e => setSchoolName(e.target.value)}
+                        placeholder="School Name"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-4 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                        required={role === 'admin'}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        placeholder="Create Password"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-12 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm Password"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl h-12 pl-11 pr-12 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-bold text-slate-700"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || googleLoading}
+                    className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-amber-200 active:scale-[0.98] disabled:opacity-50 mt-4"
+                  >
+                    {loading ? "Creating account..." : "Establish Account"}
+                  </button>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+                    <div className="relative flex justify-center text-[10px] uppercase tracking-widest bg-white px-4 text-slate-400 font-bold">Or sign up with</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignup}
+                    disabled={loading || googleLoading}
+                    className="w-full h-11 border border-slate-200 hover:bg-slate-50 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                  </button>
+                </form>
+
+                <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                  <p className="text-sm font-bold text-slate-400">
+                    Already have an account? <Link to="/login" className="text-amber-600 font-black hover:underline uppercase tracking-widest text-xs ml-1">Sign in</Link>
+                  </p>
+                </div>
+              </>
             )}
           </div>
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1" style={{ color: 'rgba(241,245,249,0.5)' }}>Confirm Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(241,245,249,0.3)' }} />
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="w-full pl-11 pr-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', color: '#f1f5f9' }} />
-            </div>
-            {confirmPassword && (
-              <p className="text-[11px] mt-1" style={{ color: password === confirmPassword ? '#22c55e' : '#ef4444' }}>
-                {password === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style={{ color: 'rgba(241,245,249,0.5)' }}>I am a...</label>
-            <div className="grid grid-cols-3 gap-2">
-              {([
-                { v: 'admin', icon: '🏫', label: 'Admin' },
-                { v: 'teacher', icon: '👩‍🏫', label: 'Teacher' },
-                { v: 'student', icon: '👨‍🎓', label: 'Student' },
-              ] as const).map(r => (
-                <button key={r.v} type="button" onClick={() => setRole(r.v)}
-                  className="flex flex-col items-center gap-1 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={role === r.v
-                    ? { background: 'rgba(99,153,34,0.2)', border: '2px solid #639922', color: '#86c94a' }
-                    : { background: 'rgba(255,255,255,0.04)', border: '2px solid transparent', color: 'rgba(241,245,249,0.6)' }
-                  }>
-                  <span className="text-xl">{r.icon}</span>
-                  <span className="text-xs">{r.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {error && (
-            <div className="px-4 py-3 rounded-xl text-[13px]" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171' }}>{error}</div>
-          )}
-
-          <button type="submit" disabled={loading} className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 text-white transition-all hover:-translate-y-0.5 disabled:opacity-60" style={{ background: 'linear-gradient(135deg, #639922, #4d7a18)', boxShadow: '0 4px 20px rgba(99,153,34,0.4)' }}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            {loading ? 'Creating account...' : 'Create Account'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm mt-4" style={{ color: 'rgba(241,245,249,0.45)' }}>
-          Already have an account? <Link to="/login" className="font-medium hover:underline" style={{ color: '#86c94a' }}>Sign in</Link>
-        </p>
+        </div>
       </motion.div>
     </div>
-  );
+  )
 }

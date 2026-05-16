@@ -7,8 +7,10 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   base: mode === "production" ? "/sholara/" : "/",
   server: {
-    host: "::",
+    host: "127.0.0.1",
     port: 8080,
+    strictPort: false,
+    open: true,
     hmr: {
       overlay: false,
     },

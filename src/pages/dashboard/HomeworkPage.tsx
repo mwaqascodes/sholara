@@ -1,71 +1,172 @@
 import { useState } from 'react';
-import { Plus, BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ClipboardList, Plus, Search, Eye, Trash2, Download, BookOpen, Clock, CheckCircle, FileText, Send, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
+import { C, PageHeader, StatCard, SearchBar, Badge, Btn, Table, Tr, Td, Modal, Field, Input, Select, Avatar } from '@/lib/design-system';
 
 interface Homework {
-  id: string; title: string; subject: string; class: string;
-  dueDate: string; teacher: string; completionRate: number;
-  status: 'active' | 'overdue' | 'completed';
+  id: number;
+  title: string;
+  class: string;
+  subject: string;
+  assignedDate: string;
+  dueDate: string;
+  submissions: number;
+  totalStudents: number;
+  status: 'active' | 'completed' | 'expired';
 }
 
-const homeworks: Homework[] = [
-  { id: '1', title: 'Math Chapter 5 Exercises', subject: 'Mathematics', class: 'Class 10', dueDate: '02/04/2026', teacher: 'Fatima Noor', completionRate: 72, status: 'active' },
-  { id: '2', title: 'English Essay: My Country', subject: 'English', class: 'Class 10', dueDate: '01/04/2026', teacher: 'Sara Batool', completionRate: 85, status: 'active' },
-  { id: '3', title: 'Urdu Grammar Worksheet', subject: 'Urdu', class: 'Class 9', dueDate: '28/03/2026', teacher: 'Muhammad Aslam', completionRate: 45, status: 'overdue' },
-  { id: '4', title: 'Science Lab Report', subject: 'Science', class: 'Class 9', dueDate: '25/03/2026', teacher: 'Umar Farooq', completionRate: 100, status: 'completed' },
-  { id: '5', title: 'Islamiat Chapter 8 Summary', subject: 'Islamiat', class: 'Class 8', dueDate: '03/04/2026', teacher: 'Amna Rashid', completionRate: 30, status: 'active' },
+const INITIAL: Homework[] = [
+  { id: 1, title: 'Linear Equations Exercise 4.2', class: 'Class 8A', subject: 'Mathematics', assignedDate: '2026-04-20', dueDate: '2026-04-22', submissions: 25, totalStudents: 30, status: 'active' },
+  { id: 2, title: 'English Essay: My School', class: 'Class 5B', subject: 'English', assignedDate: '2026-04-18', dueDate: '2026-04-21', submissions: 32, totalStudents: 32, status: 'completed' },
+  { id: 3, title: 'Science Lab Report: Plant Cells', class: 'Class 7A', subject: 'Science', assignedDate: '2026-04-15', dueDate: '2026-04-17', submissions: 20, totalStudents: 28, status: 'expired' },
+  { id: 4, title: 'Urdu Poetry Analysis', class: 'Class 9C', subject: 'Urdu', assignedDate: '2026-04-21', dueDate: '2026-04-24', submissions: 5, totalStudents: 25, status: 'active' },
 ];
 
 export default function HomeworkPage() {
-  const [filter, setFilter] = useState('all');
-  const filtered = filter === 'all' ? homeworks : homeworks.filter(h => h.status === filter);
+  const [items, setItems] = useState<Homework[]>(INITIAL);
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this homework assignment and all associated submissions?')) {
+      setItems(prev => prev.filter(a => a.id !== id));
+      toast.success('Assignment deleted');
+    }
+  };
+
+  const filtered = items.filter(i => 
+    i.title.toLowerCase().includes(search.toLowerCase()) || 
+    i.subject.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fd = new FormData(e.target as HTMLFormElement);
+    const newEntry: Homework = {
+      id: Date.now(),
+      title: fd.get('title') as string,
+      class: fd.get('class') as string,
+      subject: fd.get('subject') as string,
+      assignedDate: new Date().toISOString().split('T')[0],
+      dueDate: fd.get('dueDate') as string,
+      submissions: 0,
+      totalStudents: 32,
+      status: 'active'
+    };
+    setItems([newEntry, ...items]);
+    toast.success('Homework assigned and notified to parents via SMS!');
+    setShowAdd(false);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold" style={{ color: '#f1f5f9' }}>Homework & Assignments</h2>
-        <button className="glass-btn-primary flex items-center gap-2 text-sm"><Plus className="w-4 h-4" /> Assign Homework</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <PageHeader title="Homework & Assignments" sub="Manage school-wide assignments and monitor student submission progress">
+        <Btn icon={Plus} onClick={() => setShowAdd(true)}>Assign New Homework</Btn>
+      </PageHeader>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <StatCard label="Live Assignments" value={items.filter(i => i.status === 'active').length} icon={ClipboardList} color="#3b82f6" trend={{ type:'up', val:'+4 today' }} />
+        <StatCard label="Pending Review" value="8" icon={Clock} color="#f59e0b" />
+        <StatCard label="Avg. Submission" value="88%" icon={CheckCircle} color="#22c55e" />
+        <StatCard label="Total Posted" value={items.length} icon={FileText} color="#a855f7" />
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'active', 'overdue', 'completed'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-all ${filter === f ? 'glass-btn-primary' : 'glass-btn-secondary'}`}>
-            {f}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search by topic, subject or class..." width="100%" />
       </div>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map((hw, i) => (
-          <motion.div key={hw.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass-card-hover">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4" style={{ color: '#22c55e' }} />
-                <span className="text-xs font-medium" style={{ color: 'rgba(241,245,249,0.5)' }}>{hw.subject}</span>
-              </div>
-              <span className={hw.status === 'active' ? 'badge-info' : hw.status === 'overdue' ? 'badge-danger' : 'badge-success'}>
-                {hw.status}
-              </span>
+      <Table headers={['Assignment Topic', 'Class', 'Subject', 'Deadline', 'Submission Progress', 'Status', 'Actions']}>
+        {filtered.length > 0 ? filtered.map(i => (
+          <Tr key={i.id}>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FileText size={18} color="#f59e0b" />
+                    </div>
+                    <span style={{ fontWeight: 700, color: '#1e293b' }}>{i.title}</span>
+                </div>
+            </Td>
+            <Td style={{ color: C.sub, fontWeight: 500 }}>{i.class}</Td>
+            <Td>
+                <Badge label={i.subject} variant="info" />
+            </Td>
+            <Td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.red }}>
+                    <Calendar size={14} />
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{i.dueDate}</span>
+                </div>
+            </Td>
+            <Td>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: C.sub }}>
+                        <span>{Math.round((i.submissions/i.totalStudents)*100)}%</span>
+                        <span>{i.submissions}/{i.totalStudents}</span>
+                    </div>
+                    <div style={{ width: '100%', height: 6, borderRadius: 10, background: '#f1f5f9', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${(i.submissions/i.totalStudents)*100}%`, background: 'linear-gradient(90deg, #16a34a, #22c55e)', borderRadius: 10 }} />
+                    </div>
+                </div>
+            </Td>
+            <Td><Badge label={i.status} variant={i.status === 'active' ? 'warning' : i.status === 'completed' ? 'success' : 'default'} /></Td>
+            <Td>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button style={{ padding: 8, background: '#f1f5f9', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.sub }}><Eye size={16} /></button>
+                    <button style={{ padding: 8, background: '#f1f5f9', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.sub }}><Download size={16} /></button>
+                    <button onClick={() => handleDelete(i.id)} style={{ padding: 8, background: 'rgba(239,68,68,0.1)', borderRadius: 10, border: 'none', cursor: 'pointer', color: C.red }}><Trash2 size={16} /></button>
+                </div>
+            </Td>
+          </Tr>
+        )) : (
+          <Tr><Td colspan={7} style={{ textAlign: 'center', padding: '48px', color: C.muted }}>No active homework assignments found.</Td></Tr>
+        )}
+      </Table>
+
+      {showAdd && (
+        <Modal title="Assign Academic Homework" onClose={() => setShowAdd(false)}>
+          <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Field label="Assignment Title">
+                <Input name="title" placeholder="e.g. Linear Algebra Worksheet 5" required />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Target Class">
+                    <Select name="class">
+                        <option>Class 8A</option>
+                        <option>Class 8B</option>
+                        <option>Class 9C</option>
+                        <option>Class 10-A</option>
+                    </Select>
+                </Field>
+                <Field label="Subject">
+                    <Select name="subject">
+                        <option>Mathematics</option>
+                        <option>English</option>
+                        <option>Science</option>
+                        <option>Urdu</option>
+                        <option>Islamiat</option>
+                    </Select>
+                </Field>
             </div>
-            <h3 className="font-semibold text-sm mb-2" style={{ color: '#f1f5f9' }}>{hw.title}</h3>
-            <div className="flex items-center gap-4 text-xs mb-3" style={{ color: 'rgba(241,245,249,0.4)' }}>
-              <span>{hw.class}</span>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {hw.dueDate}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Assignment Release">
+                    <Input type="date" defaultValue={new Date().toISOString().split('T')[0]} />
+                </Field>
+                <Field label="Submission Deadline">
+                    <Input name="dueDate" type="date" required />
+                </Field>
             </div>
-            <div className="mb-1 flex items-center justify-between text-xs" style={{ color: 'rgba(241,245,249,0.5)' }}>
-              <span>Completion</span>
-              <span>{hw.completionRate}%</span>
+            <Field label="Task Instructions / Material Links">
+                <textarea 
+                    placeholder="Provide clear instructions for students..." 
+                    style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12, color: '#1e293b', fontSize: 14, outline: 'none', width: '100%', height: 100, resize: 'none' }} 
+                    required 
+                />
+            </Field>
+            <div style={{ marginTop: 10 }}>
+                <Btn type="submit" style={{ width: '100%' }}>Post Assignment & Notify</Btn>
             </div>
-            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-              <div className="h-full rounded-full transition-all" style={{
-                width: `${hw.completionRate}%`,
-                background: hw.completionRate === 100 ? '#22c55e' : hw.completionRate > 60 ? '#3b82f6' : '#f59e0b',
-              }} />
-            </div>
-            <p className="text-[10px] mt-2" style={{ color: 'rgba(241,245,249,0.35)' }}>Assigned by {hw.teacher}</p>
-          </motion.div>
-        ))}
-      </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }
